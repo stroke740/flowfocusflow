@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const DataSection = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const userId = user?.id;
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [exporting, setExporting] = useState(false);
