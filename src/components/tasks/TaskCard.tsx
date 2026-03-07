@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format, formatDistanceToNow, isPast, isToday, isTomorrow } from "date-fns";
-import { GripVertical, MoreHorizontal, Trash2, Pencil, Calendar, Check } from "lucide-react";
+import { GripVertical, MoreHorizontal, Trash2, Pencil, Calendar, Check, Repeat, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, PRIORITY_CONFIG } from "@/types/task";
 import { useTaskMutations } from "@/hooks/use-tasks";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
 interface TaskCardProps {
@@ -34,6 +34,7 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
   const prio = PRIORITY_CONFIG[task.priority];
   const subtasksDone = task.subtasks?.filter((s) => s.status === "completed").length || 0;
   const subtasksTotal = task.subtasks?.length || 0;
+  const hasRecurrence = !!(task as any).recurrence_rule;
 
   const handleComplete = async () => {
     if (isCompleted) {
@@ -56,6 +57,12 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
       title: subtasksTotal > 0 ? `Deleted task and ${subtasksTotal} subtask(s)` : "Task deleted",
       description: "This action cannot be undone.",
     });
+  };
+
+  const handleSkipOccurrence = async () => {
+    // Complete without toast/milestone, silently creates next occurrence
+    await completeTask.mutateAsync(task.id);
+    toast({ title: "Occurrence skipped", description: "Next occurrence has been created." });
   };
 
   return (
@@ -127,6 +134,12 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
             </span>
           )}
 
+          {hasRecurrence && (
+            <span className="inline-flex items-center gap-0.5 text-[11px] text-primary/70">
+              <Repeat size={10} />
+            </span>
+          )}
+
           {task.project && (
             <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground">
               <span className="w-1.5 h-1.5 rounded-full bg-primary" />
@@ -135,7 +148,11 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
           )}
 
           {task.tags?.slice(0, 2).map((tag) => (
-            <span key={tag.id} className="text-[11px] px-1.5 py-0.5 rounded-md bg-muted/70 text-muted-foreground">
+            <span
+              key={tag.id}
+              className="text-[11px] px-1.5 py-0.5 rounded-md text-muted-foreground"
+              style={{ backgroundColor: tag.color + "18" }}
+            >
               {tag.name}
             </span>
           ))}
@@ -162,10 +179,16 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
               <MoreHorizontal size={14} className="text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-36">
+          <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(task); }}>
               <Pencil size={14} className="mr-2" /> Edit
             </DropdownMenuItem>
+            {hasRecurrence && (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSkipOccurrence(); }}>
+                <SkipForward size={14} className="mr-2" /> Skip this occurrence
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(); }} className="text-destructive">
               <Trash2 size={14} className="mr-2" /> Delete
             </DropdownMenuItem>

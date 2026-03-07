@@ -9,7 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 
 export interface RecurrenceRule {
-  frequency: "daily" | "weekly" | "monthly" | "yearly" | "custom";
+  frequency: "daily" | "weekdays" | "weekly" | "monthly" | "yearly" | "custom";
   interval: number;
   weekdays?: number[]; // 0=Sun..6=Sat
   monthDay?: number;
@@ -18,6 +18,13 @@ export interface RecurrenceRule {
 }
 
 const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+
+const QUICK_OPTIONS: { label: string; rule: RecurrenceRule }[] = [
+  { label: "Daily", rule: { frequency: "daily", interval: 1 } },
+  { label: "Every weekday", rule: { frequency: "weekdays", interval: 1, weekdays: [1, 2, 3, 4, 5] } },
+  { label: "Weekly", rule: { frequency: "weekly", interval: 1 } },
+  { label: "Monthly", rule: { frequency: "monthly", interval: 1 } },
+];
 
 interface Props {
   value: RecurrenceRule | null;
@@ -38,6 +45,7 @@ export function getRecurrenceLabel(rule: RecurrenceRule | null): string {
   if (!rule) return "";
   const { frequency, interval, weekdays } = rule;
   if (frequency === "daily") return interval === 1 ? "Daily" : `Every ${interval} days`;
+  if (frequency === "weekdays") return "Every weekday";
   if (frequency === "weekly") {
     const days = weekdays?.map((d) => WEEKDAY_LABELS[d]).join(", ");
     return interval === 1 ? `Weekly${days ? ` (${days})` : ""}` : `Every ${interval} weeks`;
@@ -49,26 +57,34 @@ export function getRecurrenceLabel(rule: RecurrenceRule | null): string {
 
 const RecurrencePicker = ({ value, onChange }: Props) => {
   const [open, setOpen] = useState(false);
+  const [showCustom, setShowCustom] = useState(false);
   const [freq, setFreq] = useState<RecurrenceRule["frequency"]>(value?.frequency || "weekly");
   const [interval, setInterval] = useState(value?.interval || 1);
   const [weekdays, setWeekdays] = useState<number[]>(value?.weekdays || []);
   const [endDate, setEndDate] = useState<Date | undefined>(value?.endDate);
   const [occurrences, setOccurrences] = useState<number | undefined>(value?.occurrences);
 
-  const handleSave = () => {
+  const handleQuickSelect = (rule: RecurrenceRule) => {
+    onChange(rule);
+    setOpen(false);
+  };
+
+  const handleSaveCustom = () => {
     onChange({
       frequency: freq,
       interval,
-      weekdays: freq === "weekly" ? weekdays : undefined,
+      weekdays: freq === "weekly" ? weekdays : freq === "weekdays" ? [1,2,3,4,5] : undefined,
       endDate,
       occurrences,
     });
     setOpen(false);
+    setShowCustom(false);
   };
 
   const handleClear = () => {
     onChange(null);
     setOpen(false);
+    setShowCustom(false);
   };
 
   const toggleWeekday = (d: number) => {
@@ -80,103 +96,139 @@ const RecurrencePicker = ({ value, onChange }: Props) => {
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={cn("w-full justify-start h-10 rounded-xl text-sm gap-2", value && "text-primary border-primary/30")}
+          className={cn("w-full justify-start h-9 rounded-lg text-sm gap-2", value && "text-primary border-primary/30")}
         >
           <Repeat size={14} />
           {value ? getRecurrenceLabel(value) : "No recurrence"}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 p-4 space-y-3">
-        {/* Frequency */}
-        <div>
-          <Label className="text-xs text-muted-foreground mb-1.5 block">Frequency</Label>
-          <div className="grid grid-cols-4 gap-1">
-            {(["daily", "weekly", "monthly", "yearly"] as const).map((f) => (
+      <PopoverContent align="start" className="w-72 p-0">
+        {!showCustom ? (
+          <div className="py-1">
+            <button
+              onClick={handleClear}
+              className={cn(
+                "w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors",
+                !value && "text-primary font-medium"
+              )}
+            >
+              None
+            </button>
+            {QUICK_OPTIONS.map((opt) => (
               <button
-                key={f}
-                onClick={() => setFreq(f)}
+                key={opt.label}
+                onClick={() => handleQuickSelect(opt.rule)}
                 className={cn(
-                  "h-8 rounded-lg text-[11px] font-medium border transition-colors capitalize",
-                  freq === f ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground hover:bg-muted"
+                  "w-full text-left px-4 py-2 text-sm hover:bg-muted transition-colors",
+                  value?.frequency === opt.rule.frequency && value?.interval === opt.rule.interval && "text-primary font-medium"
                 )}
               >
-                {f}
+                {opt.label}
               </button>
             ))}
+            <div className="border-t border-border mt-1 pt-1">
+              <button
+                onClick={() => setShowCustom(true)}
+                className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                Custom…
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-4 space-y-3">
+            {/* Frequency */}
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Frequency</Label>
+              <div className="grid grid-cols-4 gap-1">
+                {(["daily", "weekly", "monthly", "yearly"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFreq(f)}
+                    className={cn(
+                      "h-8 rounded-lg text-[11px] font-medium border transition-colors capitalize",
+                      freq === f ? "bg-primary/10 border-primary text-primary" : "border-border text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Interval */}
-        <div className="flex items-center gap-2">
-          <Label className="text-xs text-muted-foreground whitespace-nowrap">Every</Label>
-          <Input
-            type="number"
-            min={1}
-            max={365}
-            value={interval}
-            onChange={(e) => setInterval(Math.max(1, parseInt(e.target.value) || 1))}
-            className="h-8 w-16 text-xs"
-          />
-          <span className="text-xs text-muted-foreground">
-            {freq === "daily" ? "day(s)" : freq === "weekly" ? "week(s)" : freq === "monthly" ? "month(s)" : "year(s)"}
-          </span>
-        </div>
+            {/* Interval */}
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground whitespace-nowrap">Every</Label>
+              <Input
+                type="number"
+                min={1}
+                max={365}
+                value={interval}
+                onChange={(e) => setInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                className="h-8 w-16 text-xs"
+              />
+              <span className="text-xs text-muted-foreground">
+                {freq === "daily" ? "day(s)" : freq === "weekly" ? "week(s)" : freq === "monthly" ? "month(s)" : "year(s)"}
+              </span>
+            </div>
 
-        {/* Weekday picker */}
-        {freq === "weekly" && (
-          <div>
-            <Label className="text-xs text-muted-foreground mb-1.5 block">On days</Label>
-            <div className="flex gap-1">
-              {WEEKDAY_LABELS.map((label, i) => (
-                <button
-                  key={i}
-                  onClick={() => toggleWeekday(i)}
-                  className={cn(
-                    "w-8 h-8 rounded-lg text-xs font-medium transition-colors",
-                    weekdays.includes(i) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
+            {/* Weekday picker */}
+            {freq === "weekly" && (
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">On days</Label>
+                <div className="flex gap-1">
+                  {WEEKDAY_LABELS.map((label, i) => (
+                    <button
+                      key={i}
+                      onClick={() => toggleWeekday(i)}
+                      className={cn(
+                        "w-8 h-8 rounded-lg text-xs font-medium transition-colors",
+                        weekdays.includes(i) ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* End condition */}
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Ends</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  placeholder="N times"
+                  value={occurrences || ""}
+                  onChange={(e) => setOccurrences(parseInt(e.target.value) || undefined)}
+                  className="h-8 text-xs flex-1"
+                />
+                <span className="text-xs text-muted-foreground flex items-center">or</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 text-xs">
+                      {endDate ? format(endDate, "MMM d") : "Date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={endDate} onSelect={setEndDate} className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <Button variant="ghost" size="sm" className="flex-1 text-xs" onClick={() => setShowCustom(false)}>
+                Back
+              </Button>
+              <Button size="sm" className="flex-1 text-xs" onClick={handleSaveCustom}>
+                Set
+              </Button>
             </div>
           </div>
         )}
-
-        {/* End condition */}
-        <div>
-          <Label className="text-xs text-muted-foreground mb-1.5 block">Ends</Label>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              min={1}
-              placeholder="N times"
-              value={occurrences || ""}
-              onChange={(e) => setOccurrences(parseInt(e.target.value) || undefined)}
-              className="h-8 text-xs flex-1"
-            />
-            <span className="text-xs text-muted-foreground flex items-center">or</span>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 text-xs">
-                  {endDate ? format(endDate, "MMM d") : "Date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={endDate} onSelect={setEndDate} className="p-3 pointer-events-auto" />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-
-        <div className="flex gap-2 pt-1">
-          <Button variant="ghost" size="sm" className="flex-1 text-xs" onClick={handleClear}>
-            Clear
-          </Button>
-          <Button size="sm" className="flex-1 text-xs" onClick={handleSave}>
-            Set
-          </Button>
-        </div>
       </PopoverContent>
     </Popover>
   );

@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Fuse from "fuse.js";
-import { format, formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import {
-  Search, Command, ArrowUp, ArrowDown, CornerDownLeft, X,
-  CalendarDays, Inbox, Calendar, List, CheckCircle2, Moon, Sun,
+  Search, ArrowUp, ArrowDown, CornerDownLeft, X,
+  CalendarDays, Inbox, Calendar, List, CheckCircle2,
   Plus, Clock, FolderOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Task, ViewType, PRIORITY_CONFIG } from "@/types/task";
+import { Task, ViewType, PRIORITY_CONFIG, TaskPriority } from "@/types/task";
 import { Project } from "@/hooks/use-projects";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -33,6 +33,7 @@ interface SearchResult {
   color?: string;
   priority?: string;
   dueDate?: string | null;
+  projectName?: string;
   onSelect: () => void;
 }
 
@@ -76,6 +77,12 @@ function clearRecentSearches() {
   localStorage.removeItem(RECENT_SEARCHES_KEY);
 }
 
+type FilterChip = {
+  type: "priority" | "project" | "due";
+  label: string;
+  value: string;
+};
+
 const CommandPalette = ({
   open, onOpenChange, tasks, projects,
   onSelectTask, onNavigateView, onNavigateProject, onCreateProject,
@@ -83,10 +90,10 @@ const CommandPalette = ({
 }: Props) => {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [activeChips, setActiveChips] = useState<FilterChip[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Build actions
   const actions: CommandAction[] = useMemo(() => [
     { id: "view-today", label: "Go to Today", icon: CalendarDays, category: "action", onSelect: () => { onNavigateView("today"); onOpenChange(false); } },
     { id: "view-inbox", label: "Go to Inbox", icon: Inbox, category: "action", onSelect: () => { onNavigateView("inbox"); onOpenChange(false); } },
@@ -96,7 +103,6 @@ const CommandPalette = ({
     { id: "new-project", label: "New Project", icon: Plus, category: "action", onSelect: () => { onCreateProject(); onOpenChange(false); } },
   ], [onNavigateView, onOpenChange, onCreateProject]);
 
-  // Fuse instances
   const taskFuse = useMemo(() => new Fuse(tasks, {
     keys: ["title", "description", "project"],
     threshold: 0.4,
@@ -106,7 +112,6 @@ const CommandPalette = ({
   const projectFuse = useMemo(() => new Fuse(projects, {
     keys: ["name"],
     threshold: 0.4,
-    includeMatches: true,
   }), [projects]);
 
   const actionFuse = useMemo(() => new Fuse(actions, {
@@ -114,19 +119,54 @@ const CommandPalette = ({
     threshold: 0.3,
   }), [actions]);
 
-  // Search results
+  // Apply chip filters to tasks
+  const chipFilteredTasks = useMemo(() => {
+    if (activeChips.length === 0) return tasks;
+    return tasks.filter((t) => {
+      for (const chip of activeChips) {
+        if (chip.type === "priority" && t.priority !== chip.value) return false;
+        if (chip.type === "project" && t.project_id !== chip.value) return false;
+        if (chip.type === "due") {
+          if (chip.value === "today" && (!t.due_date || !format(new Date(t.due_date), "yyyy-MM-dd").startsWith(format(new Date(), "yyyy-MM-dd")))) return false;
+          if (chip.value === "no_date" && t.due_date) return false;
+        }
+      }
+      return true;
+    });
+  }, [tasks, activeChips]);
+
   const results = useMemo((): SearchResult[] => {
+    const searchTasks = activeChips.length > 0 ? chipFilteredTasks : tasks;
+    const filteredFuse = new Fuse(searchTasks, {
+      keys: ["title", "description", "project"],
+      threshold: 0.4,
+    });
+
+    if (!query.trim() && activeChips.length > 0) {
+      // Show all filtered tasks when chips active but no query
+      return searchTasks.slice(0, 10).map((t) => ({
+        type: "task" as const,
+        id: t.id,
+        title: t.title,
+        subtitle: t.project || undefined,
+        priority: t.priority,
+        dueDate: t.due_date,
+        onSelect: () => { onSelectTask(t); addRecentTask(t.id); onOpenChange(false); },
+      }));
+    }
+
     if (!query.trim()) return [];
 
-    const taskResults = taskFuse.search(query, { limit: 5 }).map((r) => ({
-      type: "task" as const,
-      id: r.item.id,
-      title: r.item.title,
-      subtitle: r.item.project || undefined,
-      priority: r.item.priority,
-      dueDate: r.item.due_date,
-      onSelect: () => { onSelectTask(r.item); addRecentTask(r.item.id); addRecentSearch(query); onOpenChange(false); },
-    }));
+    const taskResults = (activeChips.length > 0 ? filteredFuse : taskFuse)
+      .search(query, { limit: 6 }).map((r) => ({
+        type: "task" as const,
+        id: r.item.id,
+        title: r.item.title,
+        subtitle: r.item.project || undefined,
+        priority: r.item.priority,
+        dueDate: r.item.due_date,
+        onSelect: () => { onSelectTask(r.item); addRecentTask(r.item.id); addRecentSearch(query); onOpenChange(false); },
+      }));
 
     const projectResults = projectFuse.search(query, { limit: 2 }).map((r) => ({
       type: "project" as const,
@@ -146,13 +186,12 @@ const CommandPalette = ({
     }));
 
     return [...taskResults, ...projectResults, ...actionResults];
-  }, [query, taskFuse, projectFuse, actionFuse, onSelectTask, onNavigateProject, onOpenChange]);
+  }, [query, taskFuse, projectFuse, actionFuse, chipFilteredTasks, activeChips, onSelectTask, onNavigateProject, onOpenChange]);
 
-  // Recent items when query is empty
   const recentItems = useMemo((): SearchResult[] => {
-    if (query.trim()) return [];
+    if (query.trim() || activeChips.length > 0) return [];
     const recentTaskIds = getRecentTaskIds();
-    const recentTasks = recentTaskIds
+    return recentTaskIds
       .map((id) => tasks.find((t) => t.id === id))
       .filter(Boolean)
       .map((t) => ({
@@ -164,30 +203,34 @@ const CommandPalette = ({
         dueDate: t!.due_date,
         onSelect: () => { onSelectTask(t!); onOpenChange(false); },
       }));
-    return recentTasks;
-  }, [query, tasks, onSelectTask, onOpenChange]);
+  }, [query, tasks, activeChips, onSelectTask, onOpenChange]);
 
-  const allItems = query.trim() ? results : recentItems;
+  const allItems = (query.trim() || activeChips.length > 0) ? results : recentItems;
 
-  // Reset on open
   useEffect(() => {
     if (open) {
       setQuery("");
       setSelectedIndex(0);
+      setActiveChips([]);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [open]);
 
-  // Clamp selected index
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [query]);
+  useEffect(() => { setSelectedIndex(0); }, [query, activeChips]);
 
-  // Scroll into view
   useEffect(() => {
     const el = listRef.current?.children[selectedIndex] as HTMLElement | undefined;
     el?.scrollIntoView({ block: "nearest" });
   }, [selectedIndex]);
+
+  const toggleChip = (chip: FilterChip) => {
+    setActiveChips((prev) => {
+      const exists = prev.find((c) => c.type === chip.type && c.value === chip.value);
+      if (exists) return prev.filter((c) => !(c.type === chip.type && c.value === chip.value));
+      // Replace same-type chip
+      return [...prev.filter((c) => c.type !== chip.type), chip];
+    });
+  };
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -203,6 +246,23 @@ const CommandPalette = ({
   }, [allItems, selectedIndex]);
 
   const recentSearches = getRecentSearches();
+
+  const priorityChips: FilterChip[] = [
+    { type: "priority", label: "🔴 P1", value: "p1" },
+    { type: "priority", label: "🟠 P2", value: "p2" },
+    { type: "priority", label: "🟡 P3", value: "p3" },
+  ];
+
+  const projectChips: FilterChip[] = projects.slice(0, 4).map((p) => ({
+    type: "project" as const,
+    label: p.name,
+    value: p.id,
+  }));
+
+  const dueChips: FilterChip[] = [
+    { type: "due", label: "Due today", value: "today" },
+    { type: "due", label: "No date", value: "no_date" },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -228,10 +288,63 @@ const CommandPalette = ({
           </kbd>
         </div>
 
-        {/* Results / Recent */}
+        {/* Filter chips */}
+        <div className="flex items-center gap-1.5 px-4 py-2 border-b border-border overflow-x-auto">
+          {priorityChips.map((c) => (
+            <button
+              key={c.value}
+              onClick={() => toggleChip(c)}
+              className={cn(
+                "px-2 py-0.5 rounded-full text-[11px] font-medium border whitespace-nowrap transition-colors",
+                activeChips.find((ac) => ac.type === c.type && ac.value === c.value)
+                  ? "bg-primary/10 border-primary text-primary"
+                  : "border-border text-muted-foreground hover:bg-muted"
+              )}
+            >
+              {c.label}
+            </button>
+          ))}
+          {projectChips.map((c) => (
+            <button
+              key={c.value}
+              onClick={() => toggleChip(c)}
+              className={cn(
+                "px-2 py-0.5 rounded-full text-[11px] font-medium border whitespace-nowrap transition-colors",
+                activeChips.find((ac) => ac.type === c.type && ac.value === c.value)
+                  ? "bg-primary/10 border-primary text-primary"
+                  : "border-border text-muted-foreground hover:bg-muted"
+              )}
+            >
+              {c.label}
+            </button>
+          ))}
+          {dueChips.map((c) => (
+            <button
+              key={c.value}
+              onClick={() => toggleChip(c)}
+              className={cn(
+                "px-2 py-0.5 rounded-full text-[11px] font-medium border whitespace-nowrap transition-colors",
+                activeChips.find((ac) => ac.type === c.type && ac.value === c.value)
+                  ? "bg-primary/10 border-primary text-primary"
+                  : "border-border text-muted-foreground hover:bg-muted"
+              )}
+            >
+              {c.label}
+            </button>
+          ))}
+          {activeChips.length > 0 && (
+            <button
+              onClick={() => setActiveChips([])}
+              className="px-2 py-0.5 text-[11px] text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        {/* Results */}
         <div className="max-h-80 overflow-y-auto" ref={listRef}>
-          {/* Empty state with recent searches */}
-          {!query.trim() && recentSearches.length > 0 && recentItems.length === 0 && (
+          {!query.trim() && activeChips.length === 0 && recentSearches.length > 0 && recentItems.length === 0 && (
             <div className="px-4 py-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Recent Searches</span>
@@ -252,23 +365,19 @@ const CommandPalette = ({
             </div>
           )}
 
-          {/* Recent tasks header */}
-          {!query.trim() && recentItems.length > 0 && (
+          {!query.trim() && activeChips.length === 0 && recentItems.length > 0 && (
             <div className="px-4 pt-3 pb-1">
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Recently Viewed</span>
             </div>
           )}
 
-          {/* Task results header */}
           {query.trim() && results.filter((r) => r.type === "task").length > 0 && (
             <div className="px-4 pt-3 pb-1">
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Tasks</span>
             </div>
           )}
 
-          {/* Results */}
           {allItems.map((item, index) => {
-            // Show section headers between types
             const prevType = index > 0 ? allItems[index - 1].type : null;
             const showProjectHeader = query.trim() && item.type === "project" && prevType !== "project";
             const showActionHeader = query.trim() && item.type === "action" && prevType !== "action";
@@ -293,7 +402,6 @@ const CommandPalette = ({
                     selectedIndex === index ? "bg-primary/10" : "hover:bg-muted/50"
                   )}
                 >
-                  {/* Icon / color dot */}
                   {item.type === "task" && item.priority && (
                     <div
                       className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -324,12 +432,11 @@ const CommandPalette = ({
             );
           })}
 
-          {/* No results */}
-          {query.trim() && results.length === 0 && (
+          {(query.trim() || activeChips.length > 0) && allItems.length === 0 && (
             <div className="text-center py-8 px-4">
               <Search size={24} className="mx-auto mb-2 text-muted-foreground/30" />
-              <p className="text-sm text-muted-foreground">No results for "{query}"</p>
-              <p className="text-xs text-muted-foreground/60 mt-1">Try a different search term</p>
+              <p className="text-sm text-muted-foreground">No results{query ? ` for "${query}"` : ""}</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Try a different search term or filter</p>
             </div>
           )}
         </div>
