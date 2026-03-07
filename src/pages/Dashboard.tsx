@@ -98,7 +98,25 @@ const Dashboard = () => {
   const isLoading = view === "completed" ? loadingCompleted : loadingActive;
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
-  const selectedProjectCounts = selectedProjectId ? taskCounts.get(selectedProjectId) : null;
+
+  // Overdue count for badge
+  const overdueCount = useMemo(
+    () => activeTasks.filter((t) => t.due_date && isBefore(new Date(t.due_date), startOfDay(new Date()))).length,
+    [activeTasks]
+  );
+
+  // Show overdue review on first load if there are overdue tasks
+  useEffect(() => {
+    if (overdueCount > 0 && !loadingActive) {
+      const dismissed = sessionStorage.getItem("overdue_dismissed");
+      if (!dismissed) setOverdueReviewOpen(true);
+    }
+  }, [overdueCount, loadingActive]);
+
+  const handleNavigateToTask = (taskId: string) => {
+    const task = [...activeTasks, ...completedTasks].find((t) => t.id === taskId);
+    if (task) setEditingTask(task);
+  };
 
   const handleSignOut = async () => {
     await signOut();
