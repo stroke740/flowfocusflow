@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Inbox, CalendarDays, CheckCircle2, LogOut, Menu,
   Calendar, List, Layers, Plus, FolderOpen, Search, Settings,
+  BarChart3, Timer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,6 +26,8 @@ import NotificationCenter from "@/components/notifications/NotificationCenter";
 import OverdueReviewModal from "@/components/notifications/OverdueReviewModal";
 import CommandPalette, { addRecentTask } from "@/components/search/CommandPalette";
 import SettingsPage from "@/components/settings/SettingsPage";
+import FocusMode from "@/components/focus/FocusMode";
+import AnalyticsView from "@/components/views/AnalyticsView";
 import { isToday, isBefore, startOfDay, startOfTomorrow } from "date-fns";
 import {
   ContextMenu,
@@ -39,6 +42,7 @@ const builtInViews: { id: ViewType; label: string; icon: typeof Inbox }[] = [
   { id: "upcoming", label: "Upcoming", icon: Calendar },
   { id: "all", label: "All Tasks", icon: List },
   { id: "completed", label: "Completed", icon: CheckCircle2 },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 const Dashboard = () => {
