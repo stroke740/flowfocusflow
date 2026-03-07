@@ -28,6 +28,8 @@ import CommandPalette, { addRecentTask } from "@/components/search/CommandPalett
 import SettingsPage from "@/components/settings/SettingsPage";
 import FocusMode from "@/components/focus/FocusMode";
 import AnalyticsView from "@/components/views/AnalyticsView";
+import { useAuth } from "@/hooks/use-auth";
+import { useProfile } from "@/hooks/use-profile";
 import { isToday, isBefore, startOfDay, startOfTomorrow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -492,10 +494,7 @@ const Dashboard = () => {
                 <Settings size={18} className="flex-shrink-0" />
                 <span>Settings</span>
               </button>
-              <div className="flex items-center gap-3 px-3 py-2">
-                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">U</div>
-                <span className="text-sm font-medium truncate">User</span>
-              </div>
+              <UserFooter />
             </>
           )}
         </div>
