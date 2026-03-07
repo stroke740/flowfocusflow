@@ -346,6 +346,13 @@ const Dashboard = () => {
                 <span className="hidden sm:inline">Search…</span>
                 <kbd className="hidden sm:flex items-center px-1 py-0.5 rounded bg-background text-[9px] font-mono">⌘K</kbd>
               </button>
+              <button
+                onClick={() => { setFocusTask(null); setFocusOpen(true); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition-colors"
+              >
+                <Timer size={13} />
+                <span className="hidden sm:inline">Focus</span>
+              </button>
               {view === "all" && (
                 <button
                   onClick={() => setGroupByProject(!groupByProject)}
@@ -401,6 +408,7 @@ const Dashboard = () => {
               {view === "upcoming" && <UpcomingView tasks={filteredTasks} onEditTask={setEditingTask} />}
               {view === "all" && <AllTasksView tasks={filteredTasks} onEditTask={setEditingTask} groupByProject={groupByProject} />}
               {view === "completed" && <CompletedView tasks={filteredTasks} onEditTask={setEditingTask} />}
+              {view === "analytics" && <AnalyticsView activeTasks={activeTasks} completedTasks={completedTasks} />}
               {view === "project" && selectedProject && (
                 <ProjectView
                   project={selectedProject}
