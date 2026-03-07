@@ -40,6 +40,7 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
   const { completeTask, uncompleteTask, deleteTask } = useTaskMutations();
   const { toast } = useToast();
   const [completing, setCompleting] = useState(false);
+  const [struck, setStruck] = useState(false);
   const isCompleted = task.status === "completed";
   const due = formatDueDate(task.due_date);
   const prio = PRIORITY_CONFIG[task.priority];
@@ -52,16 +53,20 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
       await uncompleteTask.mutateAsync(task.id);
       return;
     }
+    // Phase 1: Checkbox fill (150ms)
     setCompleting(true);
-    // Sequence: fill (150ms) → strikethrough (200ms) → fade+slide (300ms)
+    // Phase 2: Strikethrough (starts at 150ms, 200ms duration)
+    setTimeout(() => setStruck(true), 150);
+    // Phase 3: Fade out + persist (starts at 350ms, 300ms duration → total 650ms)
     setTimeout(async () => {
       await completeTask.mutateAsync(task.id);
       setCompleting(false);
+      setStruck(false);
       if ((completionCount + 1) % 5 === 0) {
         fireConfetti();
         toast({ title: "🎉 Milestone!", description: `You've completed ${completionCount + 1} tasks!` });
       }
-    }, 600);
+    }, 650);
   };
 
   const handleDelete = async () => {
@@ -82,13 +87,14 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
       layout
       initial={{ opacity: 0, y: 6 }}
       animate={{
-        opacity: completing ? 0.3 : isCompleted ? 0.5 : 1,
-        y: completing ? -6 : 0,
+        opacity: struck ? 0.3 : isCompleted ? 0.5 : 1,
+        y: struck ? -4 : 0,
+        scale: struck ? 0.98 : 1,
       }}
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-      transition={{ duration: 0.25 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       className={cn(
-        "group flex items-start gap-3 px-3.5 py-2.5 rounded-xl border border-border transition-all cursor-pointer",
+        "group flex items-start gap-3 px-3.5 py-2.5 rounded-xl border border-border transition-shadow cursor-pointer",
         "hover:shadow-layered hover:-translate-y-px",
         task.priority !== "p4" && "border-l-[3px]",
         due?.overdue && !isCompleted && "bg-destructive/[0.03]",
@@ -111,14 +117,19 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
       <button
         onClick={(e) => { e.stopPropagation(); handleComplete(); }}
         className={cn(
-          "w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-150",
+          "w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5",
           isCompleted || completing
-            ? "bg-primary border-primary scale-100"
+            ? "bg-primary border-primary"
             : "border-muted-foreground/30 hover:border-primary/50 hover:scale-110"
         )}
+        style={{ transition: "all 150ms ease" }}
       >
         {(isCompleted || completing) && (
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500 }}>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 25, duration: 0.15 }}
+          >
             <Check size={10} className="text-primary-foreground" strokeWidth={3} />
           </motion.div>
         )}
@@ -126,10 +137,13 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className={cn(
-          "text-sm font-medium leading-snug line-clamp-2",
-          (isCompleted || completing) && "line-through text-muted-foreground"
-        )}>
+        <p
+          className={cn(
+            "text-sm font-medium leading-snug line-clamp-2",
+            (isCompleted || struck) && "line-through text-muted-foreground"
+          )}
+          style={{ transition: "all 200ms ease" }}
+        >
           {task.title}
         </p>
 

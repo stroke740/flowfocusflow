@@ -1,7 +1,6 @@
-import { useState, useRef, ReactNode } from "react";
+import { ReactNode } from "react";
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { Check, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface SwipeableTaskWrapperProps {
   children: ReactNode;
@@ -14,22 +13,20 @@ const SWIPE_THRESHOLD = 80;
 
 const SwipeableTaskWrapper = ({ children, onSwipeLeft, onSwipeRight, enabled = true }: SwipeableTaskWrapperProps) => {
   const x = useMotionValue(0);
-  const [swiping, setSwiping] = useState(false);
 
   // Right swipe (complete) - green background
-  const rightBg = useTransform(x, [0, SWIPE_THRESHOLD], ["hsl(var(--success) / 0)", "hsl(var(--success) / 0.15)"]);
+  const rightBg = useTransform(x, [0, SWIPE_THRESHOLD], ["hsla(160,84%,39%,0)", "hsla(160,84%,39%,0.15)"]);
   const rightIconOpacity = useTransform(x, [0, 40, SWIPE_THRESHOLD], [0, 0.5, 1]);
   const rightIconScale = useTransform(x, [0, SWIPE_THRESHOLD], [0.5, 1]);
 
   // Left swipe (delete) - red background
-  const leftBg = useTransform(x, [-SWIPE_THRESHOLD, 0], ["hsl(var(--destructive) / 0.15)", "hsl(var(--destructive) / 0)"]);
+  const leftBg = useTransform(x, [-SWIPE_THRESHOLD, 0], ["hsla(0,84%,60%,0.15)", "hsla(0,84%,60%,0)"]);
   const leftIconOpacity = useTransform(x, [-SWIPE_THRESHOLD, -40, 0], [1, 0.5, 0]);
   const leftIconScale = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0.5]);
 
   if (!enabled) return <>{children}</>;
 
   const handleDragEnd = (_: any, info: PanInfo) => {
-    setSwiping(false);
     if (info.offset.x > SWIPE_THRESHOLD) {
       onSwipeRight();
     } else if (info.offset.x < -SWIPE_THRESHOLD) {
@@ -66,12 +63,12 @@ const SwipeableTaskWrapper = ({ children, onSwipeLeft, onSwipeRight, enabled = t
       {/* Draggable content */}
       <motion.div
         drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.3}
-        onDragStart={() => setSwiping(true)}
+        dragConstraints={{ left: -120, right: 120 }}
+        dragElastic={0.2}
+        dragSnapToOrigin
         onDragEnd={handleDragEnd}
         style={{ x }}
-        className="relative z-10"
+        className="relative z-10 touch-pan-y"
       >
         {children}
       </motion.div>
