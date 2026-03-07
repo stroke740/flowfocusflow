@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
-import { GripVertical, MoreHorizontal, Trash2, Pencil, Calendar, Check, Repeat, SkipForward } from "lucide-react";
+import { MoreHorizontal, Trash2, Pencil, Calendar, Check, Repeat, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, PRIORITY_CONFIG } from "@/types/task";
 import { useTaskMutations } from "@/hooks/use-tasks";
@@ -12,9 +12,7 @@ import confetti from "canvas-confetti";
 interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
-  onDragStart?: (task: Task) => void;
   completionCount?: number;
-  dragHandleProps?: Record<string, any>;
 }
 
 function formatDueDate(dateStr: string | null) {
@@ -36,7 +34,7 @@ function fireConfetti() {
   });
 }
 
-const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandleProps }: TaskCardProps) => {
+const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
   const { completeTask, uncompleteTask, deleteTask } = useTaskMutations();
   const { toast } = useToast();
   const [completing, setCompleting] = useState(false);
@@ -105,14 +103,6 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
       }}
       onClick={() => onEdit(task)}
     >
-      {/* Drag handle */}
-      <div
-        className="opacity-0 group-hover:opacity-30 transition-opacity mt-0.5 cursor-grab touch-none"
-        {...dragHandleProps}
-      >
-        <GripVertical size={14} />
-      </div>
-
       {/* Checkbox */}
       <button
         onClick={(e) => { e.stopPropagation(); handleComplete(); }}

@@ -1,0 +1,9 @@
+{
+  "appId": "app.lovable.57a200d7b9b748ddbf08ca619dc520ad",
+  "appName": "FocusFlow",
+  "webDir": "dist",
+  "server": {
+    "url": "https://57a200d7-b9b7-48dd-bf08-ca619dc520ad.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  }
+}

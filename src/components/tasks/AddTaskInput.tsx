@@ -16,7 +16,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useIsMobile } from "@/hooks/use-mobile";
+
 
 interface AddTaskInputProps {
   parentId?: string;
@@ -119,22 +119,8 @@ const AddTaskForm = ({ parentId, onDone }: { parentId?: string; onDone?: () => v
 const AddTaskInput = ({ parentId, asSheet, sheetOpen, onSheetOpenChange }: AddTaskInputProps) => {
   const [expanded, setExpanded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const isMobile = useIsMobile();
 
-  // Global Q shortcut
-  useEffect(() => {
-    if (parentId) return;
-    const handler = (e: globalThis.KeyboardEvent) => {
-      if (e.key === "q" && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
-        e.preventDefault();
-        setExpanded(true);
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [parentId]);
-
-  // Sheet mode for mobile FAB
+  // Sheet mode for FAB
   if (asSheet) {
     return (
       <Sheet open={sheetOpen} onOpenChange={onSheetOpenChange}>
@@ -150,19 +136,25 @@ const AddTaskInput = ({ parentId, asSheet, sheetOpen, onSheetOpenChange }: AddTa
     );
   }
 
-  // Desktop / inline collapsed state
-  if (!expanded && !parentId) {
+  // Inline form for subtasks
+  if (parentId) {
     return (
-      <button
-        onClick={() => setExpanded(true)}
-        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl border border-dashed border-border transition-colors"
-      >
-        <Plus size={16} />
-        Add a task…
-        <span className="ml-auto text-xs opacity-50 hidden sm:inline">Press Q</span>
-      </button>
+      <div className="border border-border rounded-xl p-3 bg-card shadow-sm">
+        <AddTaskForm parentId={parentId} onDone={() => {}} />
+      </div>
     );
   }
+
+  // Default: show sheet trigger (handled by parent via asSheet prop)
+  return (
+    <button
+      onClick={() => setExpanded(true)}
+      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl border border-dashed border-border transition-colors"
+    >
+      <Plus size={16} />
+      Add a task…
+    </button>
+  );
 
   return (
     <AnimatePresence>
