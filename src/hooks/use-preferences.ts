@@ -20,6 +20,8 @@ export interface UserPreferences {
   quiet_hours_end: string;
   overdue_alerts: boolean;
   reminder_default_minutes: number;
+  language: string;
+  auto_complete_subtasks: boolean;
 }
 
 export function usePreferences() {
