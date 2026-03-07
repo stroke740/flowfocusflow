@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Download, Trash2, AlertTriangle, Loader2 } from "lucide-react";
+import { Download, Trash2, AlertTriangle, Loader2, FileJson, FileSpreadsheet, HardDriveDownload } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +25,7 @@ const DataSection = () => {
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const handleExport = async () => {
+  const handleExport = async (format: "json" | "csv" | "both") => {
     if (!userId) return;
     setExporting(true);
     try {
@@ -43,15 +44,17 @@ const DataSection = () => {
         notifications: notifRes.data || [],
       };
 
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `focusflow-export-${new Date().toISOString().split("T")[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      if (format === "json" || format === "both") {
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `focusflow-export-${new Date().toISOString().split("T")[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
 
-      if (exportData.tasks.length > 0) {
+      if ((format === "csv" || format === "both") && exportData.tasks.length > 0) {
         const headers = Object.keys(exportData.tasks[0]);
         const csvRows = [
           headers.join(","),
@@ -95,7 +98,8 @@ const DataSection = () => {
       await supabase.from("tags").delete().eq("user_id", userId);
       await supabase.from("user_preferences").delete().eq("user_id", userId);
 
-      toast.success("All data deleted.");
+      toast.success("All data deleted. Page will refresh.");
+      setTimeout(() => window.location.reload(), 1500);
     } catch {
       toast.error("Failed to delete data");
     } finally {
@@ -105,53 +109,91 @@ const DataSection = () => {
 
   return (
     <div className="space-y-8">
+      {/* Export */}
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold">Export Data</h3>
+        <Label className="text-sm font-semibold">Export Data</Label>
         <p className="text-xs text-muted-foreground">
-          Download all your tasks, projects, tags, and notifications as JSON and CSV files.
+          Download all your tasks, projects, tags, and notifications.
         </p>
-        <Button variant="outline" onClick={handleExport} disabled={exporting}>
-          {exporting ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Download size={14} className="mr-2" />}
-          Export All Data
-        </Button>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <Button variant="outline" onClick={() => handleExport("json")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
+            <FileJson size={18} className="text-primary flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-xs font-medium">JSON</p>
+              <p className="text-[10px] text-muted-foreground">Full data backup</p>
+            </div>
+          </Button>
+          <Button variant="outline" onClick={() => handleExport("csv")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
+            <FileSpreadsheet size={18} className="text-success flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-xs font-medium">CSV</p>
+              <p className="text-[10px] text-muted-foreground">Spreadsheet format</p>
+            </div>
+          </Button>
+          <Button variant="outline" onClick={() => handleExport("both")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
+            {exporting ? (
+              <Loader2 size={18} className="animate-spin flex-shrink-0" />
+            ) : (
+              <HardDriveDownload size={18} className="text-accent flex-shrink-0" />
+            )}
+            <div className="text-left">
+              <p className="text-xs font-medium">Both</p>
+              <p className="text-[10px] text-muted-foreground">JSON + CSV</p>
+            </div>
+          </Button>
+        </div>
       </div>
 
-
-      <div className="space-y-3 pt-6 border-t border-border">
-        <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
-          <AlertTriangle size={14} />
-          Danger Zone
-        </h3>
+      {/* Storage info */}
+      <div className="rounded-xl border border-border p-4 bg-muted/30">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold">Storage Usage</span>
+          <span className="text-[10px] text-muted-foreground">Synced in real-time</span>
+        </div>
         <p className="text-xs text-muted-foreground">
-          Permanently delete all your data. This action cannot be undone.
+          All data is securely stored and backed up automatically. Export regularly for your own records.
+        </p>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="space-y-3 pt-4 border-t border-destructive/20">
+        <div className="flex items-center gap-2 text-destructive">
+          <AlertTriangle size={14} />
+          <Label className="text-sm font-semibold text-destructive">Danger Zone</Label>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Permanently delete all your data including tasks, projects, tags, and preferences. This action cannot be undone.
         </p>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" size="sm">
+            <Button variant="outline" size="sm" className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl">
               <Trash2 size={14} className="mr-2" />
               Delete All Data
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle size={18} className="text-destructive" />
+                Are you absolutely sure?
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete all your tasks, projects, tags, preferences, and sign you out.
-                Type <strong>DELETE</strong> to confirm.
+                This will permanently delete all your tasks, projects, tags, and preferences.
+                Type <strong className="text-foreground">DELETE</strong> to confirm.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <Input
               value={deleteConfirm}
               onChange={(e) => setDeleteConfirm(e.target.value)}
               placeholder='Type "DELETE" to confirm'
-              className="mt-2"
+              className="mt-2 rounded-lg"
             />
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setDeleteConfirm("")}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setDeleteConfirm("")} className="rounded-lg">Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteAllData}
                 disabled={deleteConfirm !== "DELETE" || deleting}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-lg"
               >
                 {deleting ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
                 Delete Everything
