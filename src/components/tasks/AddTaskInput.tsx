@@ -119,22 +119,8 @@ const AddTaskForm = ({ parentId, onDone }: { parentId?: string; onDone?: () => v
 const AddTaskInput = ({ parentId, asSheet, sheetOpen, onSheetOpenChange }: AddTaskInputProps) => {
   const [expanded, setExpanded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const isMobile = useIsMobile();
 
-  // Global Q shortcut
-  useEffect(() => {
-    if (parentId) return;
-    const handler = (e: globalThis.KeyboardEvent) => {
-      if (e.key === "q" && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
-        e.preventDefault();
-        setExpanded(true);
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [parentId]);
-
-  // Sheet mode for mobile FAB
+  // Sheet mode for FAB
   if (asSheet) {
     return (
       <Sheet open={sheetOpen} onOpenChange={onSheetOpenChange}>
