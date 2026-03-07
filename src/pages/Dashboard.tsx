@@ -97,7 +97,7 @@ const Dashboard = () => {
   const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
 
   const isMobile = useIsMobile();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { data: profile } = useProfile();
 
   const userDisplayName = profile?.display_name || user?.email?.split("@")[0] || "User";
