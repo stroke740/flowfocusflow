@@ -311,18 +311,6 @@ const Dashboard = () => {
               <NotificationCenter onNavigateToTask={handleNavigateToTask} />
             </div>
 
-            {view === "all" && (
-              <button
-                onClick={() => setGroupByProject(!groupByProject)}
-                className={cn(
-                  "ml-auto p-2 rounded-lg transition-colors",
-                  groupByProject ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-                )}
-                title="Group by project"
-              >
-                <Layers size={16} />
-              </button>
-            )}
           </div>
 
           {view !== "project" && (
