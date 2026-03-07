@@ -283,7 +283,19 @@ const Dashboard = () => {
           </div>
         </nav>
 
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border space-y-1">
+          <button
+            onClick={() => { setView("settings"); setSelectedProjectId(null); setSidebarOpen(false); }}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+              view === "settings"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <Settings size={18} />
+            Settings
+          </button>
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
               {user?.user_metadata?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || "?"}
