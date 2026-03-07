@@ -12,9 +12,7 @@ import confetti from "canvas-confetti";
 interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
-  onDragStart?: (task: Task) => void;
   completionCount?: number;
-  dragHandleProps?: Record<string, any>;
 }
 
 function formatDueDate(dateStr: string | null) {
