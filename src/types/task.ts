@@ -13,7 +13,7 @@ export type TagInsert = TablesInsert<"tags">;
 
 export type TaskPriority = "p1" | "p2" | "p3" | "p4";
 export type TaskStatus = "active" | "completed" | "archived";
-export type ViewType = "today" | "inbox" | "upcoming" | "all" | "completed";
+export type ViewType = "today" | "inbox" | "upcoming" | "all" | "completed" | "settings";
 
 export type SortOption = "manual" | "due_asc" | "due_desc" | "priority" | "created" | "alpha";
 

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Inbox, CalendarDays, CheckCircle2, LogOut, Menu,
-  Calendar, List, Layers, Plus, FolderOpen, Search,
+  Calendar, List, Layers, Plus, FolderOpen, Search, Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,6 +24,7 @@ import ProjectProgressBar from "@/components/projects/ProjectProgressBar";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import OverdueReviewModal from "@/components/notifications/OverdueReviewModal";
 import CommandPalette, { addRecentTask } from "@/components/search/CommandPalette";
+import SettingsPage from "@/components/settings/SettingsPage";
 import { isToday, isBefore, startOfDay, startOfTomorrow } from "date-fns";
 import {
   ContextMenu,
@@ -158,9 +159,11 @@ const Dashboard = () => {
   };
 
   const currentTitle =
-    view === "project" && selectedProject
-      ? selectedProject.name
-      : builtInViews.find((v) => v.id === view)?.label || "Tasks";
+    view === "settings"
+      ? ""
+      : view === "project" && selectedProject
+        ? selectedProject.name
+        : builtInViews.find((v) => v.id === view)?.label || "Tasks";
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -282,7 +285,19 @@ const Dashboard = () => {
           </div>
         </nav>
 
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border space-y-1">
+          <button
+            onClick={() => { setView("settings"); setSelectedProjectId(null); setSidebarOpen(false); }}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+              view === "settings"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <Settings size={18} />
+            Settings
+          </button>
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
               {user?.user_metadata?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || "?"}
@@ -301,6 +316,12 @@ const Dashboard = () => {
       {/* Main content */}
       <main className="flex-1 min-w-0">
         <div className="max-w-2xl mx-auto px-4 py-8">
+          {view === "settings" && (
+            <button className="md:hidden p-2 rounded-lg hover:bg-muted mb-4" onClick={() => setSidebarOpen(true)}>
+              <Menu size={20} />
+            </button>
+          )}
+          {view !== "settings" && (
           <div className="flex items-center gap-3 mb-2">
             <button className="md:hidden p-2 rounded-lg hover:bg-muted" onClick={() => setSidebarOpen(true)}>
               <Menu size={20} />
@@ -343,20 +364,23 @@ const Dashboard = () => {
             </div>
 
           </div>
+          )}
 
-          {view !== "project" && (
+          {view !== "completed" && view !== "project" && view !== "settings" && (
             <div className="mb-4">
               <FilterBar filters={filters} onChange={setFilters} tags={tags} projects={projectNames} />
             </div>
           )}
 
-          {view !== "completed" && view !== "project" && (
+          {view !== "completed" && view !== "project" && view !== "settings" && (
             <div className="mb-4">
               <AddTaskInput />
             </div>
           )}
 
-          {isLoading && view !== "project" ? (
+          {view === "settings" ? (
+            <SettingsPage />
+          ) : isLoading && view !== "project" ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-16 bg-muted/50 rounded-xl animate-pulse" />
