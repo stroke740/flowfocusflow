@@ -138,7 +138,7 @@ const Dashboard = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/login");
+    navigate("/signup");
   };
 
   const handleSaveProject = async (data: { name: string; color: string; icon: string }) => {

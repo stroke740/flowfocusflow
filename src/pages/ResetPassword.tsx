@@ -37,7 +37,7 @@ const ResetPassword = () => {
     const hash = window.location.hash;
     if (!hash.includes("type=recovery")) {
       // No recovery token — redirect
-      navigate("/login");
+      navigate("/signup");
     }
   }, [navigate]);
 
