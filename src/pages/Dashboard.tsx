@@ -54,7 +54,7 @@ const Dashboard = () => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
-
+  const [overdueReviewOpen, setOverdueReviewOpen] = useState(false);
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
   const { data: tags = [] } = useTags();
