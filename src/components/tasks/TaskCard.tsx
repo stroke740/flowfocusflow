@@ -34,7 +34,7 @@ function fireConfetti() {
   });
 }
 
-const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandleProps }: TaskCardProps) => {
+const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
   const { completeTask, uncompleteTask, deleteTask } = useTaskMutations();
   const { toast } = useToast();
   const [completing, setCompleting] = useState(false);
