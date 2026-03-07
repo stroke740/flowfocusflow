@@ -4,6 +4,7 @@ import {
   Calendar, List, Layers, Plus, Search, Settings,
   BarChart3, Timer, PanelLeftClose, PanelLeft,
   MoreHorizontal, Pencil, Trash2, FolderOpen, Sun,
+  Tag, ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ViewType, FilterState, DEFAULT_FILTERS, Task } from "@/types/task";
@@ -68,6 +69,7 @@ const Dashboard = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
   const [focusTask, setFocusTask] = useState<Task | null>(null);
+  const [tagsSidebarOpen, setTagsSidebarOpen] = useState(true);
 
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
@@ -368,6 +370,46 @@ const Dashboard = () => {
                 <Plus size={14} />
                 <span>New Project</span>
               </button>
+            </div>
+          )}
+
+          {/* Tags section */}
+          {!sidebarCollapsed && tags.length > 0 && (
+            <div className="pt-3">
+              <button
+                onClick={() => setTagsSidebarOpen(!tagsSidebarOpen)}
+                className="flex items-center justify-between w-full px-3 mb-1.5"
+              >
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Tags</span>
+                <ChevronDown size={12} className={cn("text-muted-foreground transition-transform", tagsSidebarOpen && "rotate-180")} />
+              </button>
+              {tagsSidebarOpen && (
+                <div className="space-y-0.5">
+                  {tags.map((tag) => {
+                    const isActiveTag = filters.tagIds.includes(tag.id);
+                    return (
+                      <button
+                        key={tag.id}
+                        onClick={() => {
+                          const newTagIds = isActiveTag
+                            ? filters.tagIds.filter((id) => id !== tag.id)
+                            : [...filters.tagIds, tag.id];
+                          setFilters({ ...filters, tagIds: newTagIds });
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm transition-colors",
+                          isActiveTag
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        )}
+                      >
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
+                        <span className="truncate">{tag.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </nav>
