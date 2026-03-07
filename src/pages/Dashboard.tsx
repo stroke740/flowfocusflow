@@ -300,15 +300,11 @@ const Dashboard = () => {
           </button>
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
-              {user?.user_metadata?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || "?"}
+              U
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.user_metadata?.full_name || "User"}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              <p className="text-sm font-medium truncate">User</p>
             </div>
-            <button onClick={handleSignOut} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground" title="Sign out">
-              <LogOut size={14} />
-            </button>
           </div>
         </div>
       </aside>
