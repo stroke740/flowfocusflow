@@ -300,6 +300,18 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold">{currentTitle}</h1>
 
             <div className="ml-auto flex items-center gap-1">
+              {view === "all" && (
+                <button
+                  onClick={() => setGroupByProject(!groupByProject)}
+                  className={cn(
+                    "p-2 rounded-lg transition-colors",
+                    groupByProject ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+                  )}
+                  title="Group by project"
+                >
+                  <Layers size={16} />
+                </button>
+              )}
               {overdueCount > 0 && (
                 <button
                   onClick={() => setOverdueReviewOpen(true)}
