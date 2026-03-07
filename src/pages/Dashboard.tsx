@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Inbox, CalendarDays, CheckCircle2, LogOut, Menu,
-  Calendar, List, Layers, Plus, FolderOpen,
+  Calendar, List, Layers, Plus, FolderOpen, Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,7 @@ import DeleteProjectDialog from "@/components/projects/DeleteProjectDialog";
 import ProjectProgressBar from "@/components/projects/ProjectProgressBar";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import OverdueReviewModal from "@/components/notifications/OverdueReviewModal";
+import CommandPalette, { addRecentTask } from "@/components/search/CommandPalette";
 import { isToday, isBefore, startOfDay, startOfTomorrow } from "date-fns";
 import {
   ContextMenu,
