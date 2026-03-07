@@ -58,8 +58,9 @@ const HeroSection = () => {
             <Button
               size="lg"
               className="rounded-full h-[52px] px-8 text-base font-semibold hover:scale-[1.02] hover:shadow-layered-hover transition-all duration-200"
+              asChild
             >
-              Get Started Free
+              <Link to="/signup">Get Started Free</Link>
             </Button>
             <Button
               variant="ghost"
