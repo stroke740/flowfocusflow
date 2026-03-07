@@ -95,8 +95,7 @@ const DataSection = () => {
       await supabase.from("tags").delete().eq("user_id", userId);
       await supabase.from("user_preferences").delete().eq("user_id", userId);
 
-      toast.success("All data deleted. Signing out...");
-      await signOut();
+      toast.success("All data deleted.");
     } catch {
       toast.error("Failed to delete data");
     } finally {
@@ -117,16 +116,6 @@ const DataSection = () => {
         </Button>
       </div>
 
-      <div className="space-y-3 pt-6 border-t border-border">
-        <h3 className="text-sm font-semibold">Account</h3>
-        <p className="text-xs text-muted-foreground">
-          Signed in as <strong>{user?.email}</strong>
-        </p>
-        <Button variant="outline" onClick={signOut}>
-          <LogOut size={14} className="mr-2" />
-          Sign Out
-        </Button>
-      </div>
 
       <div className="space-y-3 pt-6 border-t border-border">
         <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
