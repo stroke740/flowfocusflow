@@ -97,6 +97,24 @@ const Dashboard = () => {
   const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
 
   const isMobile = useIsMobile();
+  const { user, signOut } = useAuth();
+  const { data: profile } = useProfile();
+
+  const userDisplayName = profile?.display_name || user?.email?.split("@")[0] || "User";
+  const userInitials = userDisplayName.slice(0, 2).toUpperCase();
+
+  const UserFooter = () => (
+    <div className="flex items-center gap-3 px-3 py-2">
+      {profile?.avatar_url ? (
+        <img src={profile.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
+      ) : (
+        <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
+          {userInitials}
+        </div>
+      )}
+      <span className="text-sm font-medium truncate flex-1">{userDisplayName}</span>
+    </div>
+  );
 
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
