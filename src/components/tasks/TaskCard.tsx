@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
-import { GripVertical, MoreHorizontal, Trash2, Pencil, Calendar, Check, Repeat, SkipForward } from "lucide-react";
+import { MoreHorizontal, Trash2, Pencil, Calendar, Check, Repeat, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, PRIORITY_CONFIG } from "@/types/task";
 import { useTaskMutations } from "@/hooks/use-tasks";
@@ -105,14 +105,6 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
       }}
       onClick={() => onEdit(task)}
     >
-      {/* Drag handle */}
-      <div
-        className="opacity-0 group-hover:opacity-30 transition-opacity mt-0.5 cursor-grab touch-none"
-        {...dragHandleProps}
-      >
-        <GripVertical size={14} />
-      </div>
-
       {/* Checkbox */}
       <button
         onClick={(e) => { e.stopPropagation(); handleComplete(); }}

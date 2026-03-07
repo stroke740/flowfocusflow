@@ -150,19 +150,25 @@ const AddTaskInput = ({ parentId, asSheet, sheetOpen, onSheetOpenChange }: AddTa
     );
   }
 
-  // Desktop / inline collapsed state
-  if (!expanded && !parentId) {
+  // Inline form for subtasks
+  if (parentId) {
     return (
-      <button
-        onClick={() => setExpanded(true)}
-        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl border border-dashed border-border transition-colors"
-      >
-        <Plus size={16} />
-        Add a task…
-        <span className="ml-auto text-xs opacity-50 hidden sm:inline">Press Q</span>
-      </button>
+      <div className="border border-border rounded-xl p-3 bg-card shadow-sm">
+        <AddTaskForm parentId={parentId} onDone={() => {}} />
+      </div>
     );
   }
+
+  // Default: show sheet trigger (handled by parent via asSheet prop)
+  return (
+    <button
+      onClick={() => setExpanded(true)}
+      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-xl border border-dashed border-border transition-colors"
+    >
+      <Plus size={16} />
+      Add a task…
+    </button>
+  );
 
   return (
     <AnimatePresence>
