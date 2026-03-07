@@ -1,12 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Inbox, CalendarDays, CheckCircle2, LogOut, Menu,
+  Inbox, CalendarDays, CheckCircle2, Menu,
   Calendar, List, Layers, Plus, FolderOpen, Search, Settings,
   BarChart3, Timer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
 import { ViewType, FilterState, DEFAULT_FILTERS, Task } from "@/types/task";
 import { useTasks, useTags } from "@/hooks/use-tasks";
 import { useProjects, useProjectTaskCounts, useProjectMutations, Project } from "@/hooks/use-projects";
@@ -46,7 +45,6 @@ const builtInViews: { id: ViewType; label: string; icon: typeof Inbox }[] = [
 ];
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [view, setView] = useState<ViewType | "project">("today");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -136,10 +134,6 @@ const Dashboard = () => {
     setEditingTask(task);
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/signup");
-  };
 
   const handleSaveProject = async (data: { name: string; color: string; icon: string }) => {
     if (editingProject) {
@@ -306,15 +300,11 @@ const Dashboard = () => {
           </button>
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
-              {user?.user_metadata?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || "?"}
+              U
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.user_metadata?.full_name || "User"}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              <p className="text-sm font-medium truncate">User</p>
             </div>
-            <button onClick={handleSignOut} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground" title="Sign out">
-              <LogOut size={14} />
-            </button>
           </div>
         </div>
       </aside>

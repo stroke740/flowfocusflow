@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Bell, Check, CheckCheck, Trash2, X, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
+import { ANONYMOUS_USER_ID } from "@/lib/constants";
 import { useNotifications, useUnreadCount, useNotificationMutations } from "@/hooks/use-notifications";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,6 @@ interface Props {
 }
 
 const NotificationCenter = ({ onNavigateToTask }: Props) => {
-  const { user } = useAuth();
   const { data: notifications = [] } = useNotifications();
   const unreadCount = useUnreadCount();
   const { markRead, markAllRead, deleteNotification } = useNotificationMutations();
@@ -34,9 +33,9 @@ const NotificationCenter = ({ onNavigateToTask }: Props) => {
       <PopoverContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <h3 className="text-sm font-semibold">Notifications</h3>
-          {unreadCount > 0 && user && (
+          {unreadCount > 0 && (
             <button
-              onClick={() => markAllRead.mutate(user.id)}
+              onClick={() => markAllRead.mutate(ANONYMOUS_USER_ID)}
               className="text-xs text-primary hover:underline flex items-center gap-1"
             >
               <CheckCheck size={12} />

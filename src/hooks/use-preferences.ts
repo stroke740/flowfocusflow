@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { ANONYMOUS_USER_ID } from "@/lib/constants";
 
 export interface UserPreferences {
   user_id: string;
@@ -25,22 +25,19 @@ export interface UserPreferences {
 }
 
 export function usePreferences() {
-  const { user } = useAuth();
-
   return useQuery({
-    queryKey: ["preferences", user?.id],
-    enabled: !!user,
+    queryKey: ["preferences", ANONYMOUS_USER_ID],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_preferences")
         .select("*")
-        .eq("user_id", user!.id)
+        .eq("user_id", ANONYMOUS_USER_ID)
         .maybeSingle();
       if (error) throw error;
       if (!data) {
         const { data: newPrefs, error: insertErr } = await supabase
           .from("user_preferences")
-          .insert({ user_id: user!.id })
+          .insert({ user_id: ANONYMOUS_USER_ID })
           .select()
           .single();
         if (insertErr) throw insertErr;
@@ -53,14 +50,13 @@ export function usePreferences() {
 
 export function useUpdatePreferences() {
   const qc = useQueryClient();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (updates: Partial<UserPreferences>) => {
       const { error } = await supabase
         .from("user_preferences")
         .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq("user_id", user!.id);
+        .eq("user_id", ANONYMOUS_USER_ID);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["preferences"] }),
