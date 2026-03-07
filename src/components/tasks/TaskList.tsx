@@ -19,7 +19,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Task } from "@/types/task";
 import TaskCard from "./TaskCard";
+import SwipeableTaskWrapper from "./SwipeableTaskWrapper";
 import { useTaskMutations } from "@/hooks/use-tasks";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useToast } from "@/hooks/use-toast";
 
 interface TaskListProps {
   tasks: Task[];
@@ -30,10 +33,16 @@ const SortableTaskItem = ({
   task,
   onEditTask,
   completedCount,
+  isMobile,
+  onSwipeComplete,
+  onSwipeDelete,
 }: {
   task: Task;
   onEditTask: (task: Task) => void;
   completedCount: number;
+  isMobile: boolean;
+  onSwipeComplete: (task: Task) => void;
+  onSwipeDelete: (task: Task) => void;
 }) => {
   const {
     attributes,
@@ -52,21 +61,36 @@ const SortableTaskItem = ({
     position: "relative" as const,
   };
 
+  const card = (
+    <TaskCard
+      task={task}
+      onEdit={onEditTask}
+      completionCount={completedCount}
+      dragHandleProps={isMobile ? {} : { ...attributes, ...listeners }}
+    />
+  );
+
   return (
     <div ref={setNodeRef} style={style}>
-      <TaskCard
-        task={task}
-        onEdit={onEditTask}
-        completionCount={completedCount}
-        dragHandleProps={{ ...attributes, ...listeners }}
-      />
+      {isMobile ? (
+        <SwipeableTaskWrapper
+          onSwipeRight={() => onSwipeComplete(task)}
+          onSwipeLeft={() => onSwipeDelete(task)}
+        >
+          {card}
+        </SwipeableTaskWrapper>
+      ) : (
+        card
+      )}
     </div>
   );
 };
 
 const TaskList = ({ tasks, onEditTask }: TaskListProps) => {
-  const { reorderTasks } = useTaskMutations();
+  const { reorderTasks, completeTask, deleteTask } = useTaskMutations();
   const completedCount = tasks.filter((t) => t.status === "completed").length;
+  const isMobile = useIsMobile();
+  const { toast } = useToast();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -88,6 +112,15 @@ const TaskList = ({ tasks, onEditTask }: TaskListProps) => {
     [tasks, reorderTasks]
   );
 
+  const handleSwipeComplete = useCallback((task: Task) => {
+    completeTask.mutate(task.id);
+  }, [completeTask]);
+
+  const handleSwipeDelete = useCallback((task: Task) => {
+    deleteTask.mutate(task.id);
+    toast({ title: "Task deleted", description: "This action cannot be undone." });
+  }, [deleteTask, toast]);
+
   if (!tasks.length) {
     return (
       <div className="text-center py-16">
@@ -107,6 +140,9 @@ const TaskList = ({ tasks, onEditTask }: TaskListProps) => {
                 task={task}
                 onEditTask={onEditTask}
                 completedCount={completedCount}
+                isMobile={isMobile}
+                onSwipeComplete={handleSwipeComplete}
+                onSwipeDelete={handleSwipeDelete}
               />
             ))}
           </AnimatePresence>
