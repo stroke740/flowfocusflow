@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { ANONYMOUS_USER_ID } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 
 export interface Notification {
@@ -15,21 +15,18 @@ export interface Notification {
 }
 
 export function useNotifications() {
-  const { user } = useAuth();
   return useQuery({
-    queryKey: ["notifications", user?.id],
+    queryKey: ["notifications", ANONYMOUS_USER_ID],
     queryFn: async () => {
-      if (!user) return [];
       const { data, error } = await supabase
         .from("notifications")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", ANONYMOUS_USER_ID)
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
       return data as Notification[];
     },
-    enabled: !!user,
     refetchInterval: 30_000,
   });
 }

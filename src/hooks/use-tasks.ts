@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { ANONYMOUS_USER_ID } from "@/lib/constants";
 import { Task, Tag, TaskInsert, TaskUpdate, TaskPriority } from "@/types/task";
 import { useToast } from "@/hooks/use-toast";
 import { addDays, addWeeks, addMonths, addYears } from "date-fns";
@@ -32,16 +32,13 @@ function getNextOccurrence(current: Date, rule: RecurrenceRule): Date | null {
 }
 
 export function useTasks(status?: "active" | "completed" | "archived") {
-  const { user } = useAuth();
-
   return useQuery({
-    queryKey: ["tasks", user?.id, status],
+    queryKey: ["tasks", ANONYMOUS_USER_ID, status],
     queryFn: async () => {
-      if (!user) return [];
       let query = supabase
         .from("tasks")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", ANONYMOUS_USER_ID)
         .is("parent_id", null)
         .order("position", { ascending: true });
 
@@ -50,7 +47,6 @@ export function useTasks(status?: "active" | "completed" | "archived") {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Fetch subtasks
       const taskIds = (data || []).map((t) => t.id);
       let subtasks: Task[] = [];
       if (taskIds.length) {
@@ -62,7 +58,6 @@ export function useTasks(status?: "active" | "completed" | "archived") {
         subtasks = subs || [];
       }
 
-      // Fetch tags for all tasks
       const allIds = [...taskIds, ...subtasks.map((s) => s.id)];
       let taskTags: { task_id: string; tag_id: string }[] = [];
       let tags: Tag[] = [];
@@ -92,30 +87,25 @@ export function useTasks(status?: "active" | "completed" | "archived") {
           .map((s) => ({ ...s, tags: getTagsForTask(s.id), subtasks: [] })),
       })) as Task[];
     },
-    enabled: !!user,
   });
 }
 
 export function useTags() {
-  const { user } = useAuth();
   return useQuery({
-    queryKey: ["tags", user?.id],
+    queryKey: ["tags", ANONYMOUS_USER_ID],
     queryFn: async () => {
-      if (!user) return [];
       const { data, error } = await supabase
         .from("tags")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", ANONYMOUS_USER_ID)
         .order("name");
       if (error) throw error;
       return data as Tag[];
     },
-    enabled: !!user,
   });
 }
 
 export function useTaskMutations() {
-  const { user } = useAuth();
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -125,10 +115,9 @@ export function useTaskMutations() {
 
   const addTask = useMutation({
     mutationFn: async (task: Omit<TaskInsert, "user_id">) => {
-      if (!user) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("tasks")
-        .insert({ ...task, user_id: user.id })
+        .insert({ ...task, user_id: ANONYMOUS_USER_ID })
         .select()
         .single();
       if (error) throw error;
@@ -164,7 +153,6 @@ export function useTaskMutations() {
 
   const completeTask = useMutation({
     mutationFn: async (id: string) => {
-      // Fetch task to check for recurrence
       const { data: task, error: fetchError } = await supabase
         .from("tasks")
         .select("*")
@@ -172,7 +160,6 @@ export function useTaskMutations() {
         .single();
       if (fetchError) throw fetchError;
 
-      // Mark complete
       const { data, error } = await supabase
         .from("tasks")
         .update({ status: "completed" as const, completed_at: new Date().toISOString() })
@@ -181,7 +168,6 @@ export function useTaskMutations() {
         .single();
       if (error) throw error;
 
-      // If recurring, create next occurrence
       if (task.recurrence_rule) {
         try {
           const rule = JSON.parse(task.recurrence_rule);
@@ -235,10 +221,9 @@ export function useTaskMutations() {
 
   const addTag = useMutation({
     mutationFn: async ({ name, color }: { name: string; color?: string }) => {
-      if (!user) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("tags")
-        .upsert({ user_id: user.id, name, color: color || "#6366f1" }, { onConflict: "user_id,name" })
+        .upsert({ user_id: ANONYMOUS_USER_ID, name, color: color || "#6366f1" }, { onConflict: "user_id,name" })
         .select()
         .single();
       if (error) throw error;

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { ANONYMOUS_USER_ID } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 
 export interface Project {
@@ -17,33 +17,28 @@ export interface Project {
 export type ProjectInsert = Omit<Project, "id" | "created_at" | "updated_at">;
 
 export function useProjects() {
-  const { user } = useAuth();
   return useQuery({
-    queryKey: ["projects", user?.id],
+    queryKey: ["projects", ANONYMOUS_USER_ID],
     queryFn: async () => {
-      if (!user) return [];
       const { data, error } = await supabase
         .from("projects")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", ANONYMOUS_USER_ID)
         .order("position");
       if (error) throw error;
       return data as Project[];
     },
-    enabled: !!user,
   });
 }
 
 export function useProjectTaskCounts() {
-  const { user } = useAuth();
   return useQuery({
-    queryKey: ["project-task-counts", user?.id],
+    queryKey: ["project-task-counts", ANONYMOUS_USER_ID],
     queryFn: async () => {
-      if (!user) return new Map<string, { total: number; completed: number }>();
       const { data, error } = await supabase
         .from("tasks")
         .select("project_id, status")
-        .eq("user_id", user.id)
+        .eq("user_id", ANONYMOUS_USER_ID)
         .not("project_id", "is", null);
       if (error) throw error;
 
@@ -57,12 +52,10 @@ export function useProjectTaskCounts() {
       }
       return counts;
     },
-    enabled: !!user,
   });
 }
 
 export function useProjectMutations() {
-  const { user } = useAuth();
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -73,10 +66,9 @@ export function useProjectMutations() {
 
   const addProject = useMutation({
     mutationFn: async (project: Omit<ProjectInsert, "user_id">) => {
-      if (!user) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("projects")
-        .insert({ ...project, user_id: user.id })
+        .insert({ ...project, user_id: ANONYMOUS_USER_ID })
         .select()
         .single();
       if (error) throw error;
