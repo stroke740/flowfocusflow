@@ -64,13 +64,17 @@ const Dashboard = () => {
   const { data: taskCounts = new Map() } = useProjectTaskCounts();
   const { addProject, updateProject, deleteProject } = useProjectMutations();
 
-  // ⌘+Shift+P shortcut
+  // ⌘+Shift+P and ⌘+K shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "p" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         e.preventDefault();
         setEditingProject(null);
         setProjectFormOpen(true);
+      }
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen(true);
       }
     };
     window.addEventListener("keydown", handler);
