@@ -162,7 +162,7 @@ const Dashboard = () => {
               }}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
-                view === v.id && view !== "project"
+                view === v.id && selectedProjectId === null
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
