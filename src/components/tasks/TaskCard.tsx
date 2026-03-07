@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { format, formatDistanceToNow, isPast, isToday, isTomorrow } from "date-fns";
+import { format, isToday, isTomorrow, isPast } from "date-fns";
 import { GripVertical, MoreHorizontal, Trash2, Pencil, Calendar, Check, Repeat, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, PRIORITY_CONFIG } from "@/types/task";
 import { useTaskMutations } from "@/hooks/use-tasks";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import confetti from "canvas-confetti";
 
 interface TaskCardProps {
   task: Task;
@@ -23,6 +24,16 @@ function formatDueDate(dateStr: string | null) {
   if (isTomorrow(date)) return { text: "Tomorrow", overdue: false };
   if (isPast(date)) return { text: "Overdue", overdue: true };
   return { text: format(date, "MMM d"), overdue: false };
+}
+
+function fireConfetti() {
+  confetti({
+    particleCount: 80,
+    spread: 60,
+    origin: { y: 0.7 },
+    colors: ["#4F46E5", "#06B6D4", "#10B981", "#F59E0B", "#F43F5E"],
+    disableForReducedMotion: true,
+  });
 }
 
 const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandleProps }: TaskCardProps) => {
@@ -42,10 +53,12 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
       return;
     }
     setCompleting(true);
+    // Sequence: fill (150ms) → strikethrough (200ms) → fade+slide (300ms)
     setTimeout(async () => {
       await completeTask.mutateAsync(task.id);
       setCompleting(false);
       if ((completionCount + 1) % 5 === 0) {
+        fireConfetti();
         toast({ title: "🎉 Milestone!", description: `You've completed ${completionCount + 1} tasks!` });
       }
     }, 600);
@@ -60,7 +73,6 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
   };
 
   const handleSkipOccurrence = async () => {
-    // Complete without toast/milestone, silently creates next occurrence
     await completeTask.mutateAsync(task.id);
     toast({ title: "Occurrence skipped", description: "Next occurrence has been created." });
   };
@@ -102,7 +114,7 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandlePr
           "w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-150",
           isCompleted || completing
             ? "bg-primary border-primary scale-100"
-            : "border-muted-foreground/30 hover:border-primary/50"
+            : "border-muted-foreground/30 hover:border-primary/50 hover:scale-110"
         )}
       >
         {(isCompleted || completing) && (

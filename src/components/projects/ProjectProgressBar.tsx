@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
+import { motion } from "framer-motion";
 
 interface Props {
   completed: number;
@@ -16,9 +16,12 @@ const ProjectProgressBar = ({ completed, total, color, showLabel = false, classN
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${pct}%`, backgroundColor: color || "hsl(var(--primary))" }}
+        <motion.div
+          className="h-full rounded-full"
+          style={{ backgroundColor: color || "hsl(var(--primary))" }}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
         />
       </div>
       {showLabel && (

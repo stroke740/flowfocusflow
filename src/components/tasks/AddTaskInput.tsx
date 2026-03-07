@@ -82,9 +82,10 @@ const AddTaskInput = ({ parentId }: { parentId?: string }) => {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: "auto" }}
-        exit={{ opacity: 0, height: 0 }}
+        initial={{ opacity: 0, height: 0, y: -10 }}
+        animate={{ opacity: 1, height: "auto", y: 0 }}
+        exit={{ opacity: 0, height: 0, y: -10 }}
+        transition={{ type: "spring", stiffness: 300, damping: 24 }}
         className="border border-border rounded-xl p-3 bg-card shadow-sm"
       >
         <Input
