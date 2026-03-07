@@ -316,6 +316,7 @@ const Dashboard = () => {
       {/* Main content */}
       <main className="flex-1 min-w-0">
         <div className="max-w-2xl mx-auto px-4 py-8">
+          {view !== "settings" && (
           <div className="flex items-center gap-3 mb-2">
             <button className="md:hidden p-2 rounded-lg hover:bg-muted" onClick={() => setSidebarOpen(true)}>
               <Menu size={20} />
