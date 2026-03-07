@@ -159,9 +159,11 @@ const Dashboard = () => {
   };
 
   const currentTitle =
-    view === "project" && selectedProject
-      ? selectedProject.name
-      : builtInViews.find((v) => v.id === view)?.label || "Tasks";
+    view === "settings"
+      ? ""
+      : view === "project" && selectedProject
+        ? selectedProject.name
+        : builtInViews.find((v) => v.id === view)?.label || "Tasks";
 
   return (
     <div className="min-h-screen flex bg-background">
