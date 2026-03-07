@@ -1,9 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Palette, Bell, Keyboard, Plug, Database, Tag } from "lucide-react";
+import { User, Palette, Bell, ListTodo, Database, Tag, Keyboard } from "lucide-react";
 import ProfileSection from "./ProfileSection";
-import PreferencesSection from "./PreferencesSection";
+import AppearanceSection from "./AppearanceSection";
 import NotificationSettingsSection from "./NotificationSettingsSection";
-import IntegrationsSection from "./IntegrationsSection";
+import TaskSettingsSection from "./TaskSettingsSection";
 import DataSection from "./DataSection";
 import TagManagementSection from "./TagManagementSection";
 
@@ -19,10 +19,10 @@ const SHORTCUTS = [
 
 const SettingsPage = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20 md:pb-0">
       <div>
         <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your profile, preferences, and notifications.</p>
+        <p className="text-sm text-muted-foreground mt-1">Manage your profile, preferences, and data.</p>
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
@@ -30,17 +30,17 @@ const SettingsPage = () => {
           <TabsTrigger value="profile" className="flex items-center gap-1.5 text-xs">
             <User size={14} /> Profile
           </TabsTrigger>
-          <TabsTrigger value="preferences" className="flex items-center gap-1.5 text-xs">
+          <TabsTrigger value="appearance" className="flex items-center gap-1.5 text-xs">
             <Palette size={14} /> Appearance
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-1.5 text-xs">
             <Bell size={14} /> Notifications
           </TabsTrigger>
+          <TabsTrigger value="tasks" className="flex items-center gap-1.5 text-xs">
+            <ListTodo size={14} /> Tasks
+          </TabsTrigger>
           <TabsTrigger value="tags" className="flex items-center gap-1.5 text-xs">
             <Tag size={14} /> Tags
-          </TabsTrigger>
-          <TabsTrigger value="integrations" className="flex items-center gap-1.5 text-xs">
-            <Plug size={14} /> Integrations
           </TabsTrigger>
           <TabsTrigger value="data" className="flex items-center gap-1.5 text-xs">
             <Database size={14} /> Data
@@ -54,20 +54,20 @@ const SettingsPage = () => {
           <ProfileSection />
         </TabsContent>
 
-        <TabsContent value="preferences">
-          <PreferencesSection />
+        <TabsContent value="appearance">
+          <AppearanceSection />
         </TabsContent>
 
         <TabsContent value="notifications">
           <NotificationSettingsSection />
         </TabsContent>
 
-        <TabsContent value="tags">
-          <TagManagementSection />
+        <TabsContent value="tasks">
+          <TaskSettingsSection />
         </TabsContent>
 
-        <TabsContent value="integrations">
-          <IntegrationsSection />
+        <TabsContent value="tags">
+          <TagManagementSection />
         </TabsContent>
 
         <TabsContent value="data">
