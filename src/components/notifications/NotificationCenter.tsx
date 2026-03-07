@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Bell, Check, CheckCheck, Trash2, X, ExternalLink } from "lucide-react";
+import { Bell, CheckCheck, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
-import { ANONYMOUS_USER_ID } from "@/lib/constants";
+import { useAuth } from "@/hooks/use-auth";
 import { useNotifications, useUnreadCount, useNotificationMutations } from "@/hooks/use-notifications";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Props {
@@ -13,6 +12,7 @@ interface Props {
 }
 
 const NotificationCenter = ({ onNavigateToTask }: Props) => {
+  const { user } = useAuth();
   const { data: notifications = [] } = useNotifications();
   const unreadCount = useUnreadCount();
   const { markRead, markAllRead, deleteNotification } = useNotificationMutations();
@@ -33,9 +33,9 @@ const NotificationCenter = ({ onNavigateToTask }: Props) => {
       <PopoverContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <h3 className="text-sm font-semibold">Notifications</h3>
-          {unreadCount > 0 && (
+          {unreadCount > 0 && user && (
             <button
-              onClick={() => markAllRead.mutate(ANONYMOUS_USER_ID)}
+              onClick={() => markAllRead.mutate(user.id)}
               className="text-xs text-primary hover:underline flex items-center gap-1"
             >
               <CheckCheck size={12} />

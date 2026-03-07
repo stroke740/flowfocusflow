@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { ANONYMOUS_USER_ID } from "@/lib/constants";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Download, Trash2, AlertTriangle, Loader2 } from "lucide-react";
+import { Download, Trash2, AlertTriangle, Loader2, LogOut } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,18 +18,21 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const DataSection = () => {
+  const { user, signOut } = useAuth();
+  const userId = user?.id;
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const handleExport = async () => {
+    if (!userId) return;
     setExporting(true);
     try {
       const [tasksRes, projectsRes, tagsRes, notifRes] = await Promise.all([
-        supabase.from("tasks").select("*").eq("user_id", ANONYMOUS_USER_ID),
-        supabase.from("projects").select("*").eq("user_id", ANONYMOUS_USER_ID),
-        supabase.from("tags").select("*").eq("user_id", ANONYMOUS_USER_ID),
-        supabase.from("notifications").select("*").eq("user_id", ANONYMOUS_USER_ID),
+        supabase.from("tasks").select("*").eq("user_id", userId),
+        supabase.from("projects").select("*").eq("user_id", userId),
+        supabase.from("tags").select("*").eq("user_id", userId),
+        supabase.from("notifications").select("*").eq("user_id", userId),
       ]);
 
       const exportData = {
@@ -78,24 +80,23 @@ const DataSection = () => {
   };
 
   const handleDeleteAllData = async () => {
-    if (deleteConfirm !== "DELETE") return;
+    if (deleteConfirm !== "DELETE" || !userId) return;
     setDeleting(true);
     try {
       await Promise.all([
-        supabase.from("notifications").delete().eq("user_id", ANONYMOUS_USER_ID),
+        supabase.from("notifications").delete().eq("user_id", userId),
         supabase.from("task_tags").delete().in(
           "task_id",
-          (await supabase.from("tasks").select("id").eq("user_id", ANONYMOUS_USER_ID)).data?.map((t) => t.id) || []
+          (await supabase.from("tasks").select("id").eq("user_id", userId)).data?.map((t) => t.id) || []
         ),
       ]);
-      await supabase.from("tasks").delete().eq("user_id", ANONYMOUS_USER_ID);
-      await supabase.from("projects").delete().eq("user_id", ANONYMOUS_USER_ID);
-      await supabase.from("tags").delete().eq("user_id", ANONYMOUS_USER_ID);
-      await supabase.from("user_preferences").delete().eq("user_id", ANONYMOUS_USER_ID);
-      await supabase.from("profiles").delete().eq("id", ANONYMOUS_USER_ID);
+      await supabase.from("tasks").delete().eq("user_id", userId);
+      await supabase.from("projects").delete().eq("user_id", userId);
+      await supabase.from("tags").delete().eq("user_id", userId);
+      await supabase.from("user_preferences").delete().eq("user_id", userId);
 
-      toast.success("All data deleted.");
-      window.location.reload();
+      toast.success("All data deleted. Signing out...");
+      await signOut();
     } catch {
       toast.error("Failed to delete data");
     } finally {
@@ -113,6 +114,17 @@ const DataSection = () => {
         <Button variant="outline" onClick={handleExport} disabled={exporting}>
           {exporting ? <Loader2 size={14} className="mr-2 animate-spin" /> : <Download size={14} className="mr-2" />}
           Export All Data
+        </Button>
+      </div>
+
+      <div className="space-y-3 pt-6 border-t border-border">
+        <h3 className="text-sm font-semibold">Account</h3>
+        <p className="text-xs text-muted-foreground">
+          Signed in as <strong>{user?.email}</strong>
+        </p>
+        <Button variant="outline" onClick={signOut}>
+          <LogOut size={14} className="mr-2" />
+          Sign Out
         </Button>
       </div>
 
@@ -135,7 +147,7 @@ const DataSection = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete all your tasks, projects, tags, preferences, and profile data.
+                This will permanently delete all your tasks, projects, tags, preferences, and sign you out.
                 Type <strong>DELETE</strong> to confirm.
               </AlertDialogDescription>
             </AlertDialogHeader>
