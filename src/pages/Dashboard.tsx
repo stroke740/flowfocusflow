@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Inbox, CalendarDays, CheckCircle2, Menu,
-  Calendar, List, Layers, Plus, FolderOpen, Search, Settings,
-  BarChart3, Timer,
+  Calendar, List, Layers, Plus, Search, Settings,
+  BarChart3, Timer, PanelLeftClose, PanelLeft,
+  MoreHorizontal, Pencil, Trash2, FolderOpen, Sun,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ViewType, FilterState, DEFAULT_FILTERS, Task } from "@/types/task";
@@ -28,28 +28,34 @@ import SettingsPage from "@/components/settings/SettingsPage";
 import FocusMode from "@/components/focus/FocusMode";
 import AnalyticsView from "@/components/views/AnalyticsView";
 import { isToday, isBefore, startOfDay, startOfTomorrow } from "date-fns";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const builtInViews: { id: ViewType; label: string; icon: typeof Inbox }[] = [
-  { id: "today", label: "Today", icon: CalendarDays },
   { id: "inbox", label: "Inbox", icon: Inbox },
+  { id: "today", label: "Today", icon: CalendarDays },
   { id: "upcoming", label: "Upcoming", icon: Calendar },
-  { id: "all", label: "All Tasks", icon: List },
   { id: "completed", label: "Completed", icon: CheckCircle2 },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "all", label: "All Tasks", icon: List },
 ];
 
 const Dashboard = () => {
-  const navigate = useNavigate();
   const [view, setView] = useState<ViewType | "project">("today");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [groupByProject, setGroupByProject] = useState(false);
 
@@ -62,6 +68,7 @@ const Dashboard = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [focusOpen, setFocusOpen] = useState(false);
   const [focusTask, setFocusTask] = useState<Task | null>(null);
+
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
   const { data: tags = [] } = useTags();
@@ -69,7 +76,7 @@ const Dashboard = () => {
   const { data: taskCounts = new Map() } = useProjectTaskCounts();
   const { addProject, updateProject, deleteProject } = useProjectMutations();
 
-  // ⌘+Shift+P and ⌘+K shortcuts
+  // Shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "p" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
@@ -85,6 +92,11 @@ const Dashboard = () => {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  const inboxCount = useMemo(
+    () => activeTasks.filter((t) => !t.project_id).length,
+    [activeTasks]
+  );
 
   const todayTasks = useMemo(
     () =>
@@ -104,19 +116,20 @@ const Dashboard = () => {
     [activeTasks, completedTasks]
   );
 
-  const baseTasks = view === "completed" ? completedTasks : view === "today" ? todayTasks : activeTasks;
+  const baseTasks = view === "completed" ? completedTasks
+    : view === "today" ? todayTasks
+    : view === "inbox" ? activeTasks.filter((t) => !t.project_id)
+    : activeTasks;
   const filteredTasks = useFilteredTasks(baseTasks, filters);
   const isLoading = view === "completed" ? loadingCompleted : loadingActive;
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
 
-  // Overdue count for badge
   const overdueCount = useMemo(
     () => activeTasks.filter((t) => t.due_date && isBefore(new Date(t.due_date), startOfDay(new Date()))).length,
     [activeTasks]
   );
 
-  // Show overdue review on first load if there are overdue tasks
   useEffect(() => {
     if (overdueCount > 0 && !loadingActive) {
       const dismissed = sessionStorage.getItem("overdue_dismissed");
@@ -133,7 +146,6 @@ const Dashboard = () => {
     addRecentTask(task.id);
     setEditingTask(task);
   };
-
 
   const handleSaveProject = async (data: { name: string; color: string; icon: string }) => {
     if (editingProject) {
@@ -158,187 +170,264 @@ const Dashboard = () => {
     }
   };
 
+  const switchView = (v: ViewType | "project", projectId?: string) => {
+    setView(v);
+    setSelectedProjectId(projectId || null);
+    setMobileSidebarOpen(false);
+    setFilters(DEFAULT_FILTERS);
+  };
+
   const currentTitle =
-    view === "settings"
-      ? ""
-      : view === "project" && selectedProject
-        ? selectedProject.name
-        : builtInViews.find((v) => v.id === view)?.label || "Tasks";
+    view === "settings" ? ""
+    : view === "project" && selectedProject ? selectedProject.name
+    : builtInViews.find((v) => v.id === view)?.label || "Tasks";
+
+  const viewCounts: Record<string, number> = {
+    inbox: inboxCount,
+    today: todayTasks.length,
+    upcoming: activeTasks.filter((t) => t.due_date).length,
+    completed: completedTasks.length,
+    all: activeTasks.length,
+  };
+
+  const showAddTask = !["completed", "settings", "analytics"].includes(view);
+
+  // --- RENDER ---
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-foreground/20 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />
+    <div className="h-screen flex bg-background overflow-hidden">
+      {/* Mobile overlay */}
+      {mobileSidebarOpen && (
+        <div className="fixed inset-0 bg-foreground/20 z-40 md:hidden" onClick={() => setMobileSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
+      {/* ===== SIDEBAR ===== */}
       <aside
         className={cn(
-          "fixed md:sticky top-0 left-0 h-screen w-64 border-r border-border bg-card z-40 flex flex-col transition-transform md:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed md:relative top-0 left-0 h-full bg-card border-r border-border z-50 flex flex-col transition-all duration-200 ease-in-out",
+          // Desktop
+          sidebarCollapsed ? "md:w-[68px]" : "md:w-[260px]",
+          // Mobile
+          mobileSidebarOpen ? "w-[280px] translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className="p-4 border-b border-border">
-          <a href="/" className="text-lg font-bold tracking-tight">
-            Focus<span className="text-primary">Flow</span>
-          </a>
+        {/* Logo + collapse */}
+        <div className={cn("h-14 flex items-center border-b border-border px-4 gap-3", sidebarCollapsed && "justify-center px-0")}>
+          {!sidebarCollapsed && (
+            <span className="text-base font-bold tracking-tight flex-1">
+              Focus<span className="text-primary">Flow</span>
+            </span>
+          )}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="hidden md:flex p-1.5 rounded-lg hover:bg-muted text-muted-foreground transition-colors"
+          >
+            {sidebarCollapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
+          </button>
         </div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {builtInViews.map((v) => (
-            <button
-              key={v.id}
-              onClick={() => {
-                setView(v.id);
-                setSelectedProjectId(null);
-                setSidebarOpen(false);
-                setFilters(DEFAULT_FILTERS);
-              }}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
-                view === v.id && selectedProjectId === null
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              <v.icon size={18} />
-              {v.label}
-              {v.id === "today" && todayTasks.length > 0 && (
-                <span className="ml-auto text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5">
-                  {todayTasks.length}
-                </span>
-              )}
-              {v.id === "inbox" && activeTasks.length > 0 && (
-                <span className="ml-auto text-xs text-muted-foreground">{activeTasks.length}</span>
-              )}
-            </button>
-          ))}
+        {/* Nav */}
+        <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+          {builtInViews.map((v) => {
+            const isActive = view === v.id && selectedProjectId === null;
+            const count = viewCounts[v.id] || 0;
+            return (
+              <button
+                key={v.id}
+                onClick={() => switchView(v.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  sidebarCollapsed && "justify-center px-0",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+                title={sidebarCollapsed ? v.label : undefined}
+              >
+                <v.icon size={18} className="flex-shrink-0" />
+                {!sidebarCollapsed && (
+                  <>
+                    <span className="flex-1 text-left">{v.label}</span>
+                    {count > 0 && (
+                      <span className={cn(
+                        "text-xs min-w-[20px] text-center",
+                        isActive ? "text-primary" : "text-muted-foreground"
+                      )}>
+                        {count}
+                      </span>
+                    )}
+                  </>
+                )}
+              </button>
+            );
+          })}
+
+          {/* Analytics */}
+          <button
+            onClick={() => switchView("analytics")}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+              sidebarCollapsed && "justify-center px-0",
+              view === "analytics"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+            title={sidebarCollapsed ? "Analytics" : undefined}
+          >
+            <BarChart3 size={18} className="flex-shrink-0" />
+            {!sidebarCollapsed && <span className="flex-1 text-left">Analytics</span>}
+          </button>
 
           {/* Projects section */}
-          <div className="pt-4">
-            <div className="flex items-center justify-between px-3 mb-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Projects</span>
+          {!sidebarCollapsed && (
+            <div className="pt-5">
+              <div className="flex items-center justify-between px-3 mb-1.5">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Projects</span>
+                <button
+                  onClick={() => { setEditingProject(null); setProjectFormOpen(true); }}
+                  className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  title="New Project (⌘+Shift+P)"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+
+              {projects.length === 0 && (
+                <p className="text-xs text-muted-foreground px-3 py-2">No projects yet</p>
+              )}
+
+              {projects.map((project) => {
+                const counts = taskCounts.get(project.id);
+                const isActive = view === "project" && selectedProjectId === project.id;
+                const activeCount = counts ? counts.total - counts.completed : 0;
+                return (
+                  <ContextMenu key={project.id}>
+                    <ContextMenuTrigger>
+                      <button
+                        onClick={() => switchView("project", project.id)}
+                        className={cn(
+                          "w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors group/project",
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        )}
+                      >
+                        <span
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: project.color }}
+                        />
+                        <span className="flex-1 text-left truncate">{project.name}</span>
+                        {activeCount > 0 && (
+                          <span className="text-xs text-muted-foreground">{activeCount}</span>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <span
+                              className="p-0.5 rounded opacity-0 group-hover/project:opacity-100 hover:bg-muted-foreground/10 transition-opacity"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal size={14} />
+                            </span>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem onClick={() => { setEditingProject(project); setProjectFormOpen(true); }}>
+                              <Pencil size={14} className="mr-2" /> Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => { setDeletingProject(project); setDeleteDialogOpen(true); }}
+                            >
+                              <Trash2 size={14} className="mr-2" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </button>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem onClick={() => { setEditingProject(project); setProjectFormOpen(true); }}>
+                        Rename
+                      </ContextMenuItem>
+                      <ContextMenuItem onClick={() => { setEditingProject(project); setProjectFormOpen(true); }}>
+                        Change Color
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        className="text-destructive"
+                        onClick={() => { setDeletingProject(project); setDeleteDialogOpen(true); }}
+                      >
+                        Delete
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                );
+              })}
+
               <button
                 onClick={() => { setEditingProject(null); setProjectFormOpen(true); }}
-                className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                title="New Project (⌘+Shift+P)"
+                className="w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors mt-0.5"
               >
                 <Plus size={14} />
+                <span>New Project</span>
               </button>
             </div>
-
-            {projects.length === 0 && (
-              <p className="text-xs text-muted-foreground px-3 py-2">
-                No projects yet
-              </p>
-            )}
-
-            {projects.map((project) => {
-              const counts = taskCounts.get(project.id);
-              const isActive = view === "project" && selectedProjectId === project.id;
-              return (
-                <ContextMenu key={project.id}>
-                  <ContextMenuTrigger>
-                    <button
-                      onClick={() => {
-                        setView("project");
-                        setSelectedProjectId(project.id);
-                        setSidebarOpen(false);
-                        setFilters(DEFAULT_FILTERS);
-                      }}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors",
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      )}
-                    >
-                      <span className="text-base flex-shrink-0">{project.icon}</span>
-                      <span className="flex-1 text-left truncate">{project.name}</span>
-                      {counts && counts.total > 0 && (
-                        <div className="flex items-center gap-1.5 ml-auto">
-                          <ProjectProgressBar
-                            completed={counts.completed}
-                            total={counts.total}
-                            color={project.color}
-                            className="w-8"
-                          />
-                          <span className="text-[10px] text-muted-foreground">{counts.total - counts.completed}</span>
-                        </div>
-                      )}
-                    </button>
-                  </ContextMenuTrigger>
-                  <ContextMenuContent>
-                    <ContextMenuItem onClick={() => { setEditingProject(project); setProjectFormOpen(true); }}>
-                      Edit Project
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      className="text-destructive"
-                      onClick={() => { setDeletingProject(project); setDeleteDialogOpen(true); }}
-                    >
-                      Delete Project
-                    </ContextMenuItem>
-                  </ContextMenuContent>
-                </ContextMenu>
-              );
-            })}
-          </div>
+          )}
         </nav>
 
-        <div className="p-3 border-t border-border space-y-1">
+        {/* Footer */}
+        <div className={cn("border-t border-border p-2", sidebarCollapsed && "flex flex-col items-center")}>
           <button
-            onClick={() => { setView("settings"); setSelectedProjectId(null); setSidebarOpen(false); }}
+            onClick={() => switchView("settings")}
             className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+              "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+              sidebarCollapsed && "justify-center px-0",
               view === "settings"
                 ? "bg-primary/10 text-primary"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
+            title={sidebarCollapsed ? "Settings" : undefined}
           >
-            <Settings size={18} />
-            Settings
+            <Settings size={18} className="flex-shrink-0" />
+            {!sidebarCollapsed && <span>Settings</span>}
           </button>
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
-              U
+          {!sidebarCollapsed && (
+            <div className="flex items-center gap-3 px-3 py-2">
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
+                U
+              </div>
+              <span className="text-sm font-medium truncate">User</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">User</p>
-            </div>
-          </div>
+          )}
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 min-w-0">
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          {view === "settings" && (
-            <button className="md:hidden p-2 rounded-lg hover:bg-muted mb-4" onClick={() => setSidebarOpen(true)}>
+      {/* ===== CENTER PANEL ===== */}
+      <main className="flex-1 min-w-0 flex flex-col h-full">
+        {/* Header */}
+        {view !== "settings" && (
+          <header className="h-14 flex items-center gap-3 px-4 md:px-6 border-b border-border flex-shrink-0">
+            <button className="md:hidden p-1.5 rounded-lg hover:bg-muted" onClick={() => setMobileSidebarOpen(true)}>
               <Menu size={20} />
             </button>
-          )}
-          {view !== "settings" && (
-          <div className="flex items-center gap-3 mb-2">
-            <button className="md:hidden p-2 rounded-lg hover:bg-muted" onClick={() => setSidebarOpen(true)}>
-              <Menu size={20} />
-            </button>
-            {view === "project" && selectedProject && (
-              <span className="text-xl">{selectedProject.icon}</span>
-            )}
-            <h1 className="text-2xl font-bold">{currentTitle}</h1>
 
-            <div className="ml-auto flex items-center gap-1">
+            {view === "project" && selectedProject && (
+              <span
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: selectedProject.color }}
+              />
+            )}
+            <h1 className="text-lg font-semibold flex-1 truncate">{currentTitle}</h1>
+
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setSearchOpen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground text-xs transition-colors"
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-muted/60 hover:bg-muted text-muted-foreground text-xs transition-colors"
               >
                 <Search size={13} />
                 <span className="hidden sm:inline">Search…</span>
-                <kbd className="hidden sm:flex items-center px-1 py-0.5 rounded bg-background text-[9px] font-mono">⌘K</kbd>
+                <kbd className="hidden sm:flex items-center px-1 py-0.5 rounded bg-background text-[9px] font-mono border border-border">⌘K</kbd>
               </button>
               <button
                 onClick={() => { setFocusTask(null); setFocusOpen(true); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/15 text-primary text-xs font-medium transition-colors"
               >
                 <Timer size={13} />
                 <span className="hidden sm:inline">Focus</span>
@@ -347,7 +436,7 @@ const Dashboard = () => {
                 <button
                   onClick={() => setGroupByProject(!groupByProject)}
                   className={cn(
-                    "p-2 rounded-lg transition-colors",
+                    "p-1.5 rounded-lg transition-colors",
                     groupByProject ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
                   )}
                   title="Group by project"
@@ -358,68 +447,134 @@ const Dashboard = () => {
               {overdueCount > 0 && (
                 <button
                   onClick={() => setOverdueReviewOpen(true)}
-                  className="p-2 rounded-xl hover:bg-destructive/10 text-destructive transition-colors text-xs font-medium"
+                  className="px-2 py-1 rounded-lg hover:bg-destructive/10 text-destructive transition-colors text-xs font-medium"
                 >
                   {overdueCount} overdue
                 </button>
               )}
               <NotificationCenter onNavigateToTask={handleNavigateToTask} />
             </div>
+          </header>
+        )}
 
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className={cn("mx-auto px-4 md:px-6 py-6", editingTask ? "max-w-2xl" : "max-w-3xl")}>
+            {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && (
+              <div className="mb-4">
+                <FilterBar filters={filters} onChange={setFilters} tags={tags} projects={projectNames} />
+              </div>
+            )}
+
+            {showAddTask && view !== "project" && (
+              <div className="mb-4">
+                <AddTaskInput />
+              </div>
+            )}
+
+            {view === "settings" ? (
+              <SettingsPage />
+            ) : isLoading && view !== "project" ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-16 bg-muted/50 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <>
+                {view === "today" && (
+                  <TodayView tasks={filteredTasks} completedToday={completedToday} onEditTask={handleSelectTask} />
+                )}
+                {view === "inbox" && (
+                  <AllTasksView
+                    tasks={filteredTasks}
+                    onEditTask={handleSelectTask}
+                    emptyIcon={<Inbox size={44} className="text-muted-foreground/20" />}
+                    emptyTitle="Zero tasks. You're on top of everything."
+                    emptyDescription="Tasks without a project land here."
+                  />
+                )}
+                {view === "upcoming" && <UpcomingView tasks={filteredTasks} onEditTask={handleSelectTask} />}
+                {view === "all" && <AllTasksView tasks={filteredTasks} onEditTask={handleSelectTask} groupByProject={groupByProject} />}
+                {view === "completed" && <CompletedView tasks={filteredTasks} onEditTask={handleSelectTask} />}
+                {view === "analytics" && <AnalyticsView activeTasks={activeTasks} completedTasks={completedTasks} />}
+                {view === "project" && selectedProject && (
+                  <ProjectView
+                    project={selectedProject}
+                    tasks={activeTasks}
+                    completedTasks={completedTasks}
+                    filters={filters}
+                    onEditTask={handleSelectTask}
+                    onEditProject={() => { setEditingProject(selectedProject); setProjectFormOpen(true); }}
+                    onDeleteProject={() => { setDeletingProject(selectedProject); setDeleteDialogOpen(true); }}
+                  />
+                )}
+              </>
+            )}
           </div>
-          )}
-
-          {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && (
-            <div className="mb-4">
-              <FilterBar filters={filters} onChange={setFilters} tags={tags} projects={projectNames} />
-            </div>
-          )}
-
-          {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && (
-            <div className="mb-4">
-              <AddTaskInput />
-            </div>
-          )}
-
-          {view === "settings" ? (
-            <SettingsPage />
-          ) : isLoading && view !== "project" ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-muted/50 rounded-xl animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <>
-              {view === "today" && (
-                <TodayView tasks={filteredTasks} completedToday={completedToday} onEditTask={setEditingTask} />
-              )}
-              {view === "inbox" && <AllTasksView tasks={filteredTasks} onEditTask={setEditingTask} />}
-              {view === "upcoming" && <UpcomingView tasks={filteredTasks} onEditTask={setEditingTask} />}
-              {view === "all" && <AllTasksView tasks={filteredTasks} onEditTask={setEditingTask} groupByProject={groupByProject} />}
-              {view === "completed" && <CompletedView tasks={filteredTasks} onEditTask={setEditingTask} />}
-              {view === "analytics" && <AnalyticsView activeTasks={activeTasks} completedTasks={completedTasks} />}
-              {view === "project" && selectedProject && (
-                <ProjectView
-                  project={selectedProject}
-                  tasks={activeTasks}
-                  completedTasks={completedTasks}
-                  filters={filters}
-                  onEditTask={setEditingTask}
-                  onEditProject={() => { setEditingProject(selectedProject); setProjectFormOpen(true); }}
-                  onDeleteProject={() => { setDeletingProject(selectedProject); setDeleteDialogOpen(true); }}
-                />
-              )}
-            </>
-          )}
         </div>
       </main>
 
-      {/* Detail panel */}
-      {editingTask && <TaskDetailPanel task={editingTask} onClose={() => setEditingTask(null)} />}
-      {editingTask && <div className="fixed inset-0 z-30 bg-foreground/10" onClick={() => setEditingTask(null)} />}
+      {/* ===== RIGHT DETAIL PANEL ===== */}
+      <AnimatePresence>
+        {editingTask && (
+          <>
+            {/* Mobile: backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-foreground/10 z-30 md:hidden"
+              onClick={() => setEditingTask(null)}
+            />
+            {/* Panel */}
+            <motion.div
+              initial={{ x: "100%", opacity: 0.8 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0.8 }}
+              transition={{ type: "spring", damping: 28, stiffness: 320 }}
+              className={cn(
+                "fixed md:relative right-0 top-0 bottom-0 z-40 md:z-auto",
+                "w-full sm:w-[380px] md:w-[340px] lg:w-[360px]",
+                "bg-card border-l border-border flex-shrink-0"
+              )}
+            >
+              <TaskDetailPanel task={editingTask} onClose={() => setEditingTask(null)} projects={projects} tags={tags} />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-      {/* Project dialogs */}
+      {/* ===== MOBILE BOTTOM TAB BAR ===== */}
+      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-card border-t border-border z-30 flex items-center justify-around px-2 py-1 safe-area-bottom">
+        {builtInViews.slice(0, 4).map((v) => {
+          const isActive = view === v.id && !selectedProjectId;
+          return (
+            <button
+              key={v.id}
+              onClick={() => switchView(v.id)}
+              className={cn(
+                "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground"
+              )}
+            >
+              <v.icon size={20} />
+              <span className="text-[10px] font-medium">{v.label}</span>
+            </button>
+          );
+        })}
+        <button
+          onClick={() => setMobileSidebarOpen(true)}
+          className={cn(
+            "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors text-muted-foreground"
+          )}
+        >
+          <Menu size={20} />
+          <span className="text-[10px] font-medium">More</span>
+        </button>
+      </div>
+
+      {/* Dialogs */}
       <ProjectFormDialog
         open={projectFormOpen}
         onOpenChange={setProjectFormOpen}
@@ -449,8 +604,8 @@ const Dashboard = () => {
         tasks={[...activeTasks, ...completedTasks]}
         projects={projects}
         onSelectTask={handleSelectTask}
-        onNavigateView={(v) => { setView(v); setSelectedProjectId(null); setFilters(DEFAULT_FILTERS); }}
-        onNavigateProject={(id) => { setView("project"); setSelectedProjectId(id); setFilters(DEFAULT_FILTERS); }}
+        onNavigateView={(v) => switchView(v)}
+        onNavigateProject={(id) => switchView("project", id)}
         onCreateProject={() => { setEditingProject(null); setProjectFormOpen(true); }}
         currentProjectName={view === "project" && selectedProject ? selectedProject.name : undefined}
       />

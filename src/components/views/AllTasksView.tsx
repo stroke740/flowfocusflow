@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { List } from "lucide-react";
+import { useMemo, ReactNode } from "react";
+import { List, Plus, Inbox } from "lucide-react";
 import { Task } from "@/types/task";
 import TaskList from "../tasks/TaskList";
 
@@ -7,9 +7,19 @@ interface AllTasksViewProps {
   tasks: Task[];
   onEditTask: (task: Task) => void;
   groupByProject?: boolean;
+  emptyIcon?: ReactNode;
+  emptyTitle?: string;
+  emptyDescription?: string;
 }
 
-const AllTasksView = ({ tasks, onEditTask, groupByProject = false }: AllTasksViewProps) => {
+const AllTasksView = ({
+  tasks,
+  onEditTask,
+  groupByProject = false,
+  emptyIcon,
+  emptyTitle,
+  emptyDescription,
+}: AllTasksViewProps) => {
   const grouped = useMemo(() => {
     if (!groupByProject) return null;
     const map: Record<string, Task[]> = { "No Project": [] };
@@ -24,8 +34,9 @@ const AllTasksView = ({ tasks, onEditTask, groupByProject = false }: AllTasksVie
   if (tasks.length === 0) {
     return (
       <div className="text-center py-20">
-        <List size={40} className="mx-auto mb-3 text-muted-foreground/30" />
-        <p className="text-muted-foreground text-sm">No tasks found. Try adjusting your filters.</p>
+        {emptyIcon || <List size={44} className="mx-auto mb-3 text-muted-foreground/20" />}
+        <h3 className="text-base font-semibold mb-1 mt-3">{emptyTitle || "No tasks found"}</h3>
+        <p className="text-muted-foreground text-sm">{emptyDescription || "Try adjusting your filters or add a new task."}</p>
       </div>
     );
   }
