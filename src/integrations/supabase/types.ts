@@ -55,6 +55,30 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           color: string
@@ -219,6 +243,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          accent_color: string
+          completed_task_behavior: string
+          created_at: string
+          daily_digest: boolean
+          daily_digest_time: string
+          email_reminders: boolean
+          in_app_notifications: boolean
+          overdue_alerts: boolean
+          push_notifications: boolean
+          quiet_hours_enabled: boolean
+          quiet_hours_end: string
+          quiet_hours_start: string
+          reminder_default_minutes: number
+          sound_effects: boolean
+          start_of_week: string
+          task_input_position: string
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accent_color?: string
+          completed_task_behavior?: string
+          created_at?: string
+          daily_digest?: boolean
+          daily_digest_time?: string
+          email_reminders?: boolean
+          in_app_notifications?: boolean
+          overdue_alerts?: boolean
+          push_notifications?: boolean
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string
+          quiet_hours_start?: string
+          reminder_default_minutes?: number
+          sound_effects?: boolean
+          start_of_week?: string
+          task_input_position?: string
+          theme?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accent_color?: string
+          completed_task_behavior?: string
+          created_at?: string
+          daily_digest?: boolean
+          daily_digest_time?: string
+          email_reminders?: boolean
+          in_app_notifications?: boolean
+          overdue_alerts?: boolean
+          push_notifications?: boolean
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string
+          quiet_hours_start?: string
+          reminder_default_minutes?: number
+          sound_effects?: boolean
+          start_of_week?: string
+          task_input_position?: string
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
