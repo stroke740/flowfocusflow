@@ -62,6 +62,8 @@ const Dashboard = () => {
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
   const [overdueReviewOpen, setOverdueReviewOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [focusOpen, setFocusOpen] = useState(false);
+  const [focusTask, setFocusTask] = useState<Task | null>(null);
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
   const { data: tags = [] } = useTags();
