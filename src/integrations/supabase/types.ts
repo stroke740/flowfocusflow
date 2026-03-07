@@ -247,12 +247,14 @@ export type Database = {
       user_preferences: {
         Row: {
           accent_color: string
+          auto_complete_subtasks: boolean
           completed_task_behavior: string
           created_at: string
           daily_digest: boolean
           daily_digest_time: string
           email_reminders: boolean
           in_app_notifications: boolean
+          language: string
           overdue_alerts: boolean
           push_notifications: boolean
           quiet_hours_enabled: boolean
@@ -268,12 +270,14 @@ export type Database = {
         }
         Insert: {
           accent_color?: string
+          auto_complete_subtasks?: boolean
           completed_task_behavior?: string
           created_at?: string
           daily_digest?: boolean
           daily_digest_time?: string
           email_reminders?: boolean
           in_app_notifications?: boolean
+          language?: string
           overdue_alerts?: boolean
           push_notifications?: boolean
           quiet_hours_enabled?: boolean
@@ -289,12 +293,14 @@ export type Database = {
         }
         Update: {
           accent_color?: string
+          auto_complete_subtasks?: boolean
           completed_task_behavior?: string
           created_at?: string
           daily_digest?: boolean
           daily_digest_time?: string
           email_reminders?: boolean
           in_app_notifications?: boolean
+          language?: string
           overdue_alerts?: boolean
           push_notifications?: boolean
           quiet_hours_enabled?: boolean
