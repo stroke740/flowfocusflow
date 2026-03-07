@@ -157,7 +157,7 @@ const SignUp = () => {
           <div className="flex items-start gap-2">
             <Checkbox
               id="terms"
-              onCheckedChange={(checked) => setValue("terms", checked === true as any)}
+              onCheckedChange={(checked) => setValue("terms", checked === true ? true : (false as any))}
             />
             <Label htmlFor="terms" className="text-sm font-normal leading-snug">
               I agree to the{" "}
