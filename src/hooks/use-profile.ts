@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ANONYMOUS_USER_ID } from "@/lib/constants";
+import { useAuth } from "@/hooks/use-auth";
 
 export interface Profile {
   id: string;
@@ -11,19 +11,24 @@ export interface Profile {
 }
 
 export function useProfile() {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   return useQuery({
-    queryKey: ["profile", ANONYMOUS_USER_ID],
+    queryKey: ["profile", userId],
+    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", ANONYMOUS_USER_ID)
+        .eq("id", userId!)
         .maybeSingle();
       if (error) throw error;
       if (!data) {
+        // Profile should be auto-created by trigger, but fallback
         const { data: newProfile, error: insertErr } = await supabase
           .from("profiles")
-          .insert({ id: ANONYMOUS_USER_ID, display_name: "" })
+          .insert({ id: userId!, display_name: user?.user_metadata?.full_name || "" })
           .select()
           .single();
         if (insertErr) throw insertErr;
@@ -36,13 +41,16 @@ export function useProfile() {
 
 export function useUpdateProfile() {
   const qc = useQueryClient();
+  const { user } = useAuth();
+  const userId = user?.id;
 
   return useMutation({
     mutationFn: async (updates: { display_name?: string; avatar_url?: string | null }) => {
+      if (!userId) throw new Error("Not authenticated");
       const { error } = await supabase
         .from("profiles")
         .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq("id", ANONYMOUS_USER_ID);
+        .eq("id", userId);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
@@ -51,11 +59,13 @@ export function useUpdateProfile() {
 
 export function useUploadAvatar() {
   const updateProfile = useUpdateProfile();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (file: File) => {
+      if (!user) throw new Error("Not authenticated");
       const ext = file.name.split(".").pop();
-      const path = `${ANONYMOUS_USER_ID}/avatar.${ext}`;
+      const path = `${user.id}/avatar.${ext}`;
       const { error } = await supabase.storage
         .from("avatars")
         .upload(path, file, { upsert: true });
@@ -70,16 +80,18 @@ export function useUploadAvatar() {
 
 export function useDeleteAvatar() {
   const updateProfile = useUpdateProfile();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async () => {
+      if (!user) throw new Error("Not authenticated");
       const { data: files } = await supabase.storage
         .from("avatars")
-        .list(ANONYMOUS_USER_ID);
+        .list(user.id);
       if (files && files.length > 0) {
         await supabase.storage
           .from("avatars")
-          .remove(files.map((f) => `${ANONYMOUS_USER_ID}/${f.name}`));
+          .remove(files.map((f) => `${user.id}/${f.name}`));
       }
       await updateProfile.mutateAsync({ avatar_url: null });
     },

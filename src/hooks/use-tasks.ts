@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ANONYMOUS_USER_ID } from "@/lib/constants";
+import { useAuth } from "@/hooks/use-auth";
 import { Task, Tag, TaskInsert, TaskUpdate, TaskPriority } from "@/types/task";
 import { useToast } from "@/hooks/use-toast";
 import { addDays, addWeeks, addMonths, addYears } from "date-fns";
@@ -18,27 +18,26 @@ function getNextOccurrence(current: Date, rule: RecurrenceRule): Date | null {
   if (rule.endDate && new Date(rule.endDate) < current) return null;
 
   switch (rule.frequency) {
-    case "daily":
-      return addDays(current, rule.interval);
-    case "weekly":
-      return addWeeks(current, rule.interval);
-    case "monthly":
-      return addMonths(current, rule.interval);
-    case "yearly":
-      return addYears(current, rule.interval);
-    default:
-      return addDays(current, rule.interval);
+    case "daily": return addDays(current, rule.interval);
+    case "weekly": return addWeeks(current, rule.interval);
+    case "monthly": return addMonths(current, rule.interval);
+    case "yearly": return addYears(current, rule.interval);
+    default: return addDays(current, rule.interval);
   }
 }
 
 export function useTasks(status?: "active" | "completed" | "archived") {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   return useQuery({
-    queryKey: ["tasks", ANONYMOUS_USER_ID, status],
+    queryKey: ["tasks", userId, status],
+    enabled: !!userId,
     queryFn: async () => {
       let query = supabase
         .from("tasks")
         .select("*")
-        .eq("user_id", ANONYMOUS_USER_ID)
+        .eq("user_id", userId!)
         .is("parent_id", null)
         .order("position", { ascending: true });
 
@@ -91,13 +90,17 @@ export function useTasks(status?: "active" | "completed" | "archived") {
 }
 
 export function useTags() {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   return useQuery({
-    queryKey: ["tags", ANONYMOUS_USER_ID],
+    queryKey: ["tags", userId],
+    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
         .select("*")
-        .eq("user_id", ANONYMOUS_USER_ID)
+        .eq("user_id", userId!)
         .order("name");
       if (error) throw error;
       return data as Tag[];
@@ -108,6 +111,8 @@ export function useTags() {
 export function useTaskMutations() {
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const userId = user?.id;
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["tasks"] });
@@ -115,9 +120,10 @@ export function useTaskMutations() {
 
   const addTask = useMutation({
     mutationFn: async (task: Omit<TaskInsert, "user_id">) => {
+      if (!userId) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("tasks")
-        .insert({ ...task, user_id: ANONYMOUS_USER_ID })
+        .insert({ ...task, user_id: userId })
         .select()
         .single();
       if (error) throw error;
@@ -221,9 +227,10 @@ export function useTaskMutations() {
 
   const addTag = useMutation({
     mutationFn: async ({ name, color }: { name: string; color?: string }) => {
+      if (!userId) throw new Error("Not authenticated");
       const { data, error } = await supabase
         .from("tags")
-        .upsert({ user_id: ANONYMOUS_USER_ID, name, color: color || "#6366f1" }, { onConflict: "user_id,name" })
+        .upsert({ user_id: userId, name, color: color || "#6366f1" }, { onConflict: "user_id,name" })
         .select()
         .single();
       if (error) throw error;

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ANONYMOUS_USER_ID } from "@/lib/constants";
+import { useAuth } from "@/hooks/use-auth";
 
 export interface UserPreferences {
   user_id: string;
@@ -25,19 +25,23 @@ export interface UserPreferences {
 }
 
 export function usePreferences() {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   return useQuery({
-    queryKey: ["preferences", ANONYMOUS_USER_ID],
+    queryKey: ["preferences", userId],
+    enabled: !!userId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_preferences")
         .select("*")
-        .eq("user_id", ANONYMOUS_USER_ID)
+        .eq("user_id", userId!)
         .maybeSingle();
       if (error) throw error;
       if (!data) {
         const { data: newPrefs, error: insertErr } = await supabase
           .from("user_preferences")
-          .insert({ user_id: ANONYMOUS_USER_ID })
+          .insert({ user_id: userId! })
           .select()
           .single();
         if (insertErr) throw insertErr;
@@ -50,13 +54,16 @@ export function usePreferences() {
 
 export function useUpdatePreferences() {
   const qc = useQueryClient();
+  const { user } = useAuth();
+  const userId = user?.id;
 
   return useMutation({
     mutationFn: async (updates: Partial<UserPreferences>) => {
+      if (!userId) throw new Error("Not authenticated");
       const { error } = await supabase
         .from("user_preferences")
         .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq("user_id", ANONYMOUS_USER_ID);
+        .eq("user_id", userId);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["preferences"] }),
