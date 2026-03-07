@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { ANONYMOUS_USER_ID } from "@/lib/constants";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const DataSection = () => {
-  const { user, signOut } = useAuth();
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -27,24 +26,21 @@ const DataSection = () => {
   const handleExport = async () => {
     setExporting(true);
     try {
-      // Fetch all user data
       const [tasksRes, projectsRes, tagsRes, notifRes] = await Promise.all([
-        supabase.from("tasks").select("*").eq("user_id", user!.id),
-        supabase.from("projects").select("*").eq("user_id", user!.id),
-        supabase.from("tags").select("*").eq("user_id", user!.id),
-        supabase.from("notifications").select("*").eq("user_id", user!.id),
+        supabase.from("tasks").select("*").eq("user_id", ANONYMOUS_USER_ID),
+        supabase.from("projects").select("*").eq("user_id", ANONYMOUS_USER_ID),
+        supabase.from("tags").select("*").eq("user_id", ANONYMOUS_USER_ID),
+        supabase.from("notifications").select("*").eq("user_id", ANONYMOUS_USER_ID),
       ]);
 
       const exportData = {
         exported_at: new Date().toISOString(),
-        user_email: user?.email,
         tasks: tasksRes.data || [],
         projects: projectsRes.data || [],
         tags: tagsRes.data || [],
         notifications: notifRes.data || [],
       };
 
-      // Download as JSON
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -53,7 +49,6 @@ const DataSection = () => {
       a.click();
       URL.revokeObjectURL(url);
 
-      // Also create CSV for tasks
       if (exportData.tasks.length > 0) {
         const headers = Object.keys(exportData.tasks[0]);
         const csvRows = [
@@ -82,28 +77,27 @@ const DataSection = () => {
     }
   };
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAllData = async () => {
     if (deleteConfirm !== "DELETE") return;
     setDeleting(true);
     try {
-      // Delete all user data
       await Promise.all([
-        supabase.from("notifications").delete().eq("user_id", user!.id),
+        supabase.from("notifications").delete().eq("user_id", ANONYMOUS_USER_ID),
         supabase.from("task_tags").delete().in(
           "task_id",
-          (await supabase.from("tasks").select("id").eq("user_id", user!.id)).data?.map((t) => t.id) || []
+          (await supabase.from("tasks").select("id").eq("user_id", ANONYMOUS_USER_ID)).data?.map((t) => t.id) || []
         ),
       ]);
-      await supabase.from("tasks").delete().eq("user_id", user!.id);
-      await supabase.from("projects").delete().eq("user_id", user!.id);
-      await supabase.from("tags").delete().eq("user_id", user!.id);
-      await supabase.from("user_preferences").delete().eq("user_id", user!.id);
-      await supabase.from("profiles").delete().eq("id", user!.id);
+      await supabase.from("tasks").delete().eq("user_id", ANONYMOUS_USER_ID);
+      await supabase.from("projects").delete().eq("user_id", ANONYMOUS_USER_ID);
+      await supabase.from("tags").delete().eq("user_id", ANONYMOUS_USER_ID);
+      await supabase.from("user_preferences").delete().eq("user_id", ANONYMOUS_USER_ID);
+      await supabase.from("profiles").delete().eq("id", ANONYMOUS_USER_ID);
 
-      await signOut();
-      toast.success("Account data deleted. You have been signed out.");
+      toast.success("All data deleted.");
+      window.location.reload();
     } catch {
-      toast.error("Failed to delete account data");
+      toast.error("Failed to delete data");
     } finally {
       setDeleting(false);
     }
@@ -111,7 +105,6 @@ const DataSection = () => {
 
   return (
     <div className="space-y-8">
-      {/* Export */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold">Export Data</h3>
         <p className="text-xs text-muted-foreground">
@@ -123,7 +116,6 @@ const DataSection = () => {
         </Button>
       </div>
 
-      {/* Delete Account */}
       <div className="space-y-3 pt-6 border-t border-border">
         <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
           <AlertTriangle size={14} />
@@ -156,7 +148,7 @@ const DataSection = () => {
             <AlertDialogFooter>
               <AlertDialogCancel onClick={() => setDeleteConfirm("")}>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleDeleteAccount}
+                onClick={handleDeleteAllData}
                 disabled={deleteConfirm !== "DELETE" || deleting}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >

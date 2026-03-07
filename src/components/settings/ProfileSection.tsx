@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useProfile, useUpdateProfile, useUploadAvatar, useDeleteAvatar } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,6 @@ import { toast } from "sonner";
 import { Camera, Trash2, Loader2 } from "lucide-react";
 
 const ProfileSection = () => {
-  const { user } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
   const uploadAvatar = useUploadAvatar();
@@ -18,13 +16,12 @@ const ProfileSection = () => {
   const [displayName, setDisplayName] = useState("");
   const [nameInitialized, setNameInitialized] = useState(false);
 
-  // Initialize display name from profile
   if (profile && !nameInitialized) {
     setDisplayName(profile.display_name || "");
     setNameInitialized(true);
   }
 
-  const initials = (displayName || user?.email || "?").slice(0, 2).toUpperCase();
+  const initials = (displayName || "U").slice(0, 2).toUpperCase();
 
   const handleSaveName = async () => {
     if (displayName.length > 60) {
@@ -123,21 +120,6 @@ const ProfileSection = () => {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">{displayName.length}/60 characters</p>
-      </div>
-
-      {/* Email (read-only) */}
-      <div className="space-y-2">
-        <Label>Email</Label>
-        <Input value={user?.email || ""} disabled className="max-w-xs opacity-70" />
-        <p className="text-xs text-muted-foreground">Contact support to change your email address.</p>
-      </div>
-
-      {/* Password */}
-      <div className="space-y-2">
-        <Label>Password</Label>
-        <p className="text-xs text-muted-foreground">
-          Use the <a href="/forgot-password" className="text-primary hover:underline">forgot password</a> flow to change your password.
-        </p>
       </div>
     </div>
   );
