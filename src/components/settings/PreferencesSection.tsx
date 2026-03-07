@@ -139,6 +139,34 @@ const PreferencesSection = () => {
         </Select>
       </div>
 
+      {/* Language */}
+      <div className="space-y-2">
+        <Label className="text-sm font-semibold">Language</Label>
+        <Select value={prefs.language} onValueChange={(v) => update("language", v)}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">English</SelectItem>
+            <SelectItem value="es">Español</SelectItem>
+            <SelectItem value="fr">Français</SelectItem>
+            <SelectItem value="de">Deutsch</SelectItem>
+            <SelectItem value="ja">日本語</SelectItem>
+            <SelectItem value="pt">Português</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">Language support coming soon — this saves your preference.</p>
+      </div>
+
+      {/* Auto-complete subtasks */}
+      <div className="flex items-center justify-between max-w-sm">
+        <div>
+          <Label className="text-sm font-semibold">Auto-complete Subtasks</Label>
+          <p className="text-xs text-muted-foreground">Complete parent when all subtasks are done</p>
+        </div>
+        <Switch checked={prefs.auto_complete_subtasks} onCheckedChange={(v) => update("auto_complete_subtasks", v)} />
+      </div>
+
       {/* Sound effects */}
       <div className="flex items-center justify-between max-w-sm">
         <Label className="text-sm font-semibold">Sound Effects</Label>

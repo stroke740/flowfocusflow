@@ -1,8 +1,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Palette, Bell, Keyboard } from "lucide-react";
+import { User, Palette, Bell, Keyboard, Plug, Database } from "lucide-react";
 import ProfileSection from "./ProfileSection";
 import PreferencesSection from "./PreferencesSection";
 import NotificationSettingsSection from "./NotificationSettingsSection";
+import IntegrationsSection from "./IntegrationsSection";
+import DataSection from "./DataSection";
 
 const SHORTCUTS = [
   { keys: "⌘ K", desc: "Open search / command palette" },
@@ -21,7 +23,7 @@ const SettingsPage = () => {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-4 mb-6">
+        <TabsList className="flex w-full max-w-xl overflow-x-auto mb-6">
           <TabsTrigger value="profile" className="flex items-center gap-1.5 text-xs">
             <User size={14} /> Profile
           </TabsTrigger>
@@ -30,6 +32,12 @@ const SettingsPage = () => {
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-1.5 text-xs">
             <Bell size={14} /> Notifications
+          </TabsTrigger>
+          <TabsTrigger value="integrations" className="flex items-center gap-1.5 text-xs">
+            <Plug size={14} /> Integrations
+          </TabsTrigger>
+          <TabsTrigger value="data" className="flex items-center gap-1.5 text-xs">
+            <Database size={14} /> Data
           </TabsTrigger>
           <TabsTrigger value="shortcuts" className="flex items-center gap-1.5 text-xs">
             <Keyboard size={14} /> Shortcuts
@@ -46,6 +54,14 @@ const SettingsPage = () => {
 
         <TabsContent value="notifications">
           <NotificationSettingsSection />
+        </TabsContent>
+
+        <TabsContent value="integrations">
+          <IntegrationsSection />
+        </TabsContent>
+
+        <TabsContent value="data">
+          <DataSection />
         </TabsContent>
 
         <TabsContent value="shortcuts">
