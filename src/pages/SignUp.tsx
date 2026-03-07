@@ -5,7 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { signUpSchema, type SignUpValues } from "@/lib/auth-validation";
 import AuthLayout from "@/components/auth/AuthLayout";
-import OAuthButtons from "@/components/auth/OAuthButtons";
 import PasswordStrengthBar from "@/components/auth/PasswordStrengthBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const SignUp = () => {
-  const { signUp, signInWithOAuth } = useAuth();
+  const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);

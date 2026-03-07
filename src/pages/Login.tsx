@@ -5,7 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { loginSchema, type LoginValues } from "@/lib/auth-validation";
 import AuthLayout from "@/components/auth/AuthLayout";
-import OAuthButtons from "@/components/auth/OAuthButtons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
 
 const Login = () => {
-  const { signIn, signInWithOAuth, signInWithMagicLink } = useAuth();
+  const { signIn, signInWithMagicLink } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
