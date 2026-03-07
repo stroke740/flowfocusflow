@@ -570,7 +570,7 @@ const Dashboard = () => {
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto pb-20 md:pb-0">
+        <div className="flex-1 overflow-y-auto pb-24 md:pb-0">
           <div className={cn("mx-auto px-4 md:px-6 py-6", editingTask && !isMobile ? "max-w-2xl" : "max-w-3xl")}>
             {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && (
               <div className="mb-4">

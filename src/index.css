@@ -153,6 +153,13 @@
   }
 }
 
+/* Safe area for mobile bottom nav */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 @layer components {
   /* Primary button hover scale */
   button[class*="bg-primary"]:not(:disabled) {
