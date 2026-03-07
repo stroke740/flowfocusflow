@@ -379,13 +379,13 @@ const Dashboard = () => {
           </div>
           )}
 
-          {view !== "completed" && view !== "project" && view !== "settings" && (
+          {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && (
             <div className="mb-4">
               <FilterBar filters={filters} onChange={setFilters} tags={tags} projects={projectNames} />
             </div>
           )}
 
-          {view !== "completed" && view !== "project" && view !== "settings" && (
+          {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && (
             <div className="mb-4">
               <AddTaskInput />
             </div>
