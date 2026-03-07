@@ -121,7 +121,12 @@ const Dashboard = () => {
 
   const handleNavigateToTask = (taskId: string) => {
     const task = [...activeTasks, ...completedTasks].find((t) => t.id === taskId);
-    if (task) setEditingTask(task);
+    if (task) { addRecentTask(task.id); setEditingTask(task); }
+  };
+
+  const handleSelectTask = (task: Task) => {
+    addRecentTask(task.id);
+    setEditingTask(task);
   };
 
   const handleSignOut = async () => {
@@ -306,6 +311,14 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold">{currentTitle}</h1>
 
             <div className="ml-auto flex items-center gap-1">
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground text-xs transition-colors"
+              >
+                <Search size={13} />
+                <span className="hidden sm:inline">Search…</span>
+                <kbd className="hidden sm:flex items-center px-1 py-0.5 rounded bg-background text-[9px] font-mono">⌘K</kbd>
+              </button>
               {view === "all" && (
                 <button
                   onClick={() => setGroupByProject(!groupByProject)}
@@ -401,6 +414,17 @@ const Dashboard = () => {
           if (!open) sessionStorage.setItem("overdue_dismissed", "true");
         }}
         onEditTask={setEditingTask}
+      />
+      <CommandPalette
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        tasks={[...activeTasks, ...completedTasks]}
+        projects={projects}
+        onSelectTask={handleSelectTask}
+        onNavigateView={(v) => { setView(v); setSelectedProjectId(null); setFilters(DEFAULT_FILTERS); }}
+        onNavigateProject={(id) => { setView("project"); setSelectedProjectId(id); setFilters(DEFAULT_FILTERS); }}
+        onCreateProject={() => { setEditingProject(null); setProjectFormOpen(true); }}
+        currentProjectName={view === "project" && selectedProject ? selectedProject.name : undefined}
       />
     </div>
   );
