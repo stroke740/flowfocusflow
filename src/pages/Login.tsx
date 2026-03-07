@@ -45,12 +45,6 @@ const Login = () => {
     navigate("/");
   };
 
-  const handleOAuth = async (provider: "google" | "apple") => {
-    setLoading(true);
-    const { error } = await signInWithOAuth(provider);
-    setLoading(false);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-  };
 
   const handleMagicLink = async () => {
     if (!magicLinkEmail) return;
@@ -116,14 +110,6 @@ const Login = () => {
 
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to continue where you left off">
-      <OAuthButtons onOAuth={handleOAuth} loading={loading} />
-
-      <div className="flex items-center gap-3 my-6">
-        <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground">or continue with email</span>
-        <Separator className="flex-1" />
-      </div>
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Label htmlFor="email">Email</Label>

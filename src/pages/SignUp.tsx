@@ -61,25 +61,9 @@ const SignUp = () => {
     navigate("/login");
   };
 
-  const handleOAuth = async (provider: "google" | "apple") => {
-    setLoading(true);
-    const { error } = await signInWithOAuth(provider);
-    setLoading(false);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
-  };
 
   return (
     <AuthLayout title="Create your account" subtitle="Start organizing your life in seconds" step={{ current: 1, total: 3 }}>
-      <OAuthButtons onOAuth={handleOAuth} loading={loading} />
-
-      <div className="flex items-center gap-3 my-6">
-        <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground">or continue with email</span>
-        <Separator className="flex-1" />
-      </div>
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Label htmlFor="fullName">Full Name</Label>
