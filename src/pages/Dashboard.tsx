@@ -299,6 +299,18 @@ const Dashboard = () => {
             )}
             <h1 className="text-2xl font-bold">{currentTitle}</h1>
 
+            <div className="ml-auto flex items-center gap-1">
+              {overdueCount > 0 && (
+                <button
+                  onClick={() => setOverdueReviewOpen(true)}
+                  className="p-2 rounded-xl hover:bg-destructive/10 text-destructive transition-colors text-xs font-medium"
+                >
+                  {overdueCount} overdue
+                </button>
+              )}
+              <NotificationCenter onNavigateToTask={handleNavigateToTask} />
+            </div>
+
             {view === "all" && (
               <button
                 onClick={() => setGroupByProject(!groupByProject)}
@@ -374,6 +386,15 @@ const Dashboard = () => {
         project={deletingProject}
         taskCount={deletingProject ? (taskCounts.get(deletingProject.id)?.total || 0) : 0}
         onConfirm={handleDeleteProject}
+      />
+      <OverdueReviewModal
+        tasks={activeTasks}
+        open={overdueReviewOpen}
+        onOpenChange={(open) => {
+          setOverdueReviewOpen(open);
+          if (!open) sessionStorage.setItem("overdue_dismissed", "true");
+        }}
+        onEditTask={setEditingTask}
       />
     </div>
   );
