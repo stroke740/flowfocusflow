@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Inbox, CalendarDays, CheckCircle2, LogOut, Menu,
-  Calendar, List, Layers, Plus, FolderOpen,
+  Calendar, List, Layers, Plus, FolderOpen, Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,7 @@ import DeleteProjectDialog from "@/components/projects/DeleteProjectDialog";
 import ProjectProgressBar from "@/components/projects/ProjectProgressBar";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import OverdueReviewModal from "@/components/notifications/OverdueReviewModal";
+import CommandPalette, { addRecentTask } from "@/components/search/CommandPalette";
 import { isToday, isBefore, startOfDay, startOfTomorrow } from "date-fns";
 import {
   ContextMenu,
@@ -55,6 +56,7 @@ const Dashboard = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
   const [overdueReviewOpen, setOverdueReviewOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
   const { data: tags = [] } = useTags();
@@ -62,13 +64,17 @@ const Dashboard = () => {
   const { data: taskCounts = new Map() } = useProjectTaskCounts();
   const { addProject, updateProject, deleteProject } = useProjectMutations();
 
-  // ⌘+Shift+P shortcut
+  // ⌘+Shift+P and ⌘+K shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "p" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         e.preventDefault();
         setEditingProject(null);
         setProjectFormOpen(true);
+      }
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen(true);
       }
     };
     window.addEventListener("keydown", handler);
@@ -115,7 +121,12 @@ const Dashboard = () => {
 
   const handleNavigateToTask = (taskId: string) => {
     const task = [...activeTasks, ...completedTasks].find((t) => t.id === taskId);
-    if (task) setEditingTask(task);
+    if (task) { addRecentTask(task.id); setEditingTask(task); }
+  };
+
+  const handleSelectTask = (task: Task) => {
+    addRecentTask(task.id);
+    setEditingTask(task);
   };
 
   const handleSignOut = async () => {
@@ -300,6 +311,14 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold">{currentTitle}</h1>
 
             <div className="ml-auto flex items-center gap-1">
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/50 hover:bg-muted text-muted-foreground text-xs transition-colors"
+              >
+                <Search size={13} />
+                <span className="hidden sm:inline">Search…</span>
+                <kbd className="hidden sm:flex items-center px-1 py-0.5 rounded bg-background text-[9px] font-mono">⌘K</kbd>
+              </button>
               {view === "all" && (
                 <button
                   onClick={() => setGroupByProject(!groupByProject)}
@@ -395,6 +414,17 @@ const Dashboard = () => {
           if (!open) sessionStorage.setItem("overdue_dismissed", "true");
         }}
         onEditTask={setEditingTask}
+      />
+      <CommandPalette
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        tasks={[...activeTasks, ...completedTasks]}
+        projects={projects}
+        onSelectTask={handleSelectTask}
+        onNavigateView={(v) => { setView(v); setSelectedProjectId(null); setFilters(DEFAULT_FILTERS); }}
+        onNavigateProject={(id) => { setView("project"); setSelectedProjectId(id); setFilters(DEFAULT_FILTERS); }}
+        onCreateProject={() => { setEditingProject(null); setProjectFormOpen(true); }}
+        currentProjectName={view === "project" && selectedProject ? selectedProject.name : undefined}
       />
     </div>
   );
