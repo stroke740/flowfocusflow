@@ -13,6 +13,7 @@ interface TaskCardProps {
   onEdit: (task: Task) => void;
   onDragStart?: (task: Task) => void;
   completionCount?: number;
+  dragHandleProps?: Record<string, any>;
 }
 
 function formatDueDate(dateStr: string | null) {
@@ -24,7 +25,7 @@ function formatDueDate(dateStr: string | null) {
   return { text: formatDistanceToNow(date, { addSuffix: true }), overdue: false };
 }
 
-const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0 }: TaskCardProps) => {
+const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0, dragHandleProps }: TaskCardProps) => {
   const { completeTask, uncompleteTask, deleteTask } = useTaskMutations();
   const { toast } = useToast();
   const [completing, setCompleting] = useState(false);
@@ -81,11 +82,12 @@ const TaskCard = ({ task, onEdit, onDragStart, completionCount = 0 }: TaskCardPr
         borderLeftColor: task.priority !== "p4" ? prio.color : undefined,
       }}
       onClick={() => onEdit(task)}
-      draggable
-      onDragStart={() => onDragStart?.(task)}
     >
       {/* Drag handle */}
-      <div className="opacity-0 group-hover:opacity-40 transition-opacity mt-0.5 cursor-grab">
+      <div
+        className="opacity-0 group-hover:opacity-40 transition-opacity mt-0.5 cursor-grab touch-none"
+        {...dragHandleProps}
+      >
         <GripVertical size={14} />
       </div>
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Inbox, CalendarDays, CheckCircle2, LogOut, Menu,
   Calendar, List, Layers, Plus, FolderOpen, Search, Settings,
+  BarChart3, Timer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,6 +26,8 @@ import NotificationCenter from "@/components/notifications/NotificationCenter";
 import OverdueReviewModal from "@/components/notifications/OverdueReviewModal";
 import CommandPalette, { addRecentTask } from "@/components/search/CommandPalette";
 import SettingsPage from "@/components/settings/SettingsPage";
+import FocusMode from "@/components/focus/FocusMode";
+import AnalyticsView from "@/components/views/AnalyticsView";
 import { isToday, isBefore, startOfDay, startOfTomorrow } from "date-fns";
 import {
   ContextMenu,
@@ -39,6 +42,7 @@ const builtInViews: { id: ViewType; label: string; icon: typeof Inbox }[] = [
   { id: "upcoming", label: "Upcoming", icon: Calendar },
   { id: "all", label: "All Tasks", icon: List },
   { id: "completed", label: "Completed", icon: CheckCircle2 },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 const Dashboard = () => {
@@ -58,6 +62,8 @@ const Dashboard = () => {
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
   const [overdueReviewOpen, setOverdueReviewOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [focusOpen, setFocusOpen] = useState(false);
+  const [focusTask, setFocusTask] = useState<Task | null>(null);
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
   const { data: tags = [] } = useTags();
@@ -340,6 +346,13 @@ const Dashboard = () => {
                 <span className="hidden sm:inline">Search…</span>
                 <kbd className="hidden sm:flex items-center px-1 py-0.5 rounded bg-background text-[9px] font-mono">⌘K</kbd>
               </button>
+              <button
+                onClick={() => { setFocusTask(null); setFocusOpen(true); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition-colors"
+              >
+                <Timer size={13} />
+                <span className="hidden sm:inline">Focus</span>
+              </button>
               {view === "all" && (
                 <button
                   onClick={() => setGroupByProject(!groupByProject)}
@@ -366,13 +379,13 @@ const Dashboard = () => {
           </div>
           )}
 
-          {view !== "completed" && view !== "project" && view !== "settings" && (
+          {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && (
             <div className="mb-4">
               <FilterBar filters={filters} onChange={setFilters} tags={tags} projects={projectNames} />
             </div>
           )}
 
-          {view !== "completed" && view !== "project" && view !== "settings" && (
+          {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && (
             <div className="mb-4">
               <AddTaskInput />
             </div>
@@ -395,6 +408,7 @@ const Dashboard = () => {
               {view === "upcoming" && <UpcomingView tasks={filteredTasks} onEditTask={setEditingTask} />}
               {view === "all" && <AllTasksView tasks={filteredTasks} onEditTask={setEditingTask} groupByProject={groupByProject} />}
               {view === "completed" && <CompletedView tasks={filteredTasks} onEditTask={setEditingTask} />}
+              {view === "analytics" && <AnalyticsView activeTasks={activeTasks} completedTasks={completedTasks} />}
               {view === "project" && selectedProject && (
                 <ProjectView
                   project={selectedProject}
@@ -449,6 +463,13 @@ const Dashboard = () => {
         onNavigateProject={(id) => { setView("project"); setSelectedProjectId(id); setFilters(DEFAULT_FILTERS); }}
         onCreateProject={() => { setEditingProject(null); setProjectFormOpen(true); }}
         currentProjectName={view === "project" && selectedProject ? selectedProject.name : undefined}
+      />
+      <FocusMode
+        open={focusOpen}
+        onClose={() => setFocusOpen(false)}
+        task={focusTask}
+        tasks={activeTasks}
+        onSelectTask={setFocusTask}
       />
     </div>
   );
