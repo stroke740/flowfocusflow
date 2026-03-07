@@ -137,6 +137,15 @@ export function useTaskMutations() {
 
   const completeTask = useMutation({
     mutationFn: async (id: string) => {
+      // Fetch task to check for recurrence
+      const { data: task, error: fetchError } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (fetchError) throw fetchError;
+
+      // Mark complete
       const { data, error } = await supabase
         .from("tasks")
         .update({ status: "completed" as const, completed_at: new Date().toISOString() })
@@ -144,6 +153,31 @@ export function useTaskMutations() {
         .select()
         .single();
       if (error) throw error;
+
+      // If recurring, create next occurrence
+      if (task.recurrence_rule) {
+        try {
+          const rule = JSON.parse(task.recurrence_rule);
+          const nextDate = getNextOccurrence(task.due_date ? new Date(task.due_date) : new Date(), rule);
+          if (nextDate) {
+            await supabase.from("tasks").insert({
+              user_id: task.user_id,
+              title: task.title,
+              description: task.description,
+              priority: task.priority,
+              project: task.project,
+              project_id: task.project_id,
+              parent_id: task.parent_id,
+              due_date: nextDate.toISOString(),
+              recurrence_rule: task.recurrence_rule,
+              recurrence_end_date: task.recurrence_end_date,
+              recurrence_count: task.recurrence_count ? task.recurrence_count - 1 : null,
+              reminder_minutes: task.reminder_minutes,
+            });
+          }
+        } catch {}
+      }
+
       return data;
     },
     onSuccess: invalidate,
