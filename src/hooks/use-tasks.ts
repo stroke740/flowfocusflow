@@ -3,6 +3,33 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Task, Tag, TaskInsert, TaskUpdate, TaskPriority } from "@/types/task";
 import { useToast } from "@/hooks/use-toast";
+import { addDays, addWeeks, addMonths, addYears } from "date-fns";
+
+interface RecurrenceRule {
+  frequency: "daily" | "weekly" | "monthly" | "yearly" | "custom";
+  interval: number;
+  weekdays?: number[];
+  endDate?: string;
+  occurrences?: number;
+}
+
+function getNextOccurrence(current: Date, rule: RecurrenceRule): Date | null {
+  if (rule.occurrences !== undefined && rule.occurrences <= 0) return null;
+  if (rule.endDate && new Date(rule.endDate) < current) return null;
+
+  switch (rule.frequency) {
+    case "daily":
+      return addDays(current, rule.interval);
+    case "weekly":
+      return addWeeks(current, rule.interval);
+    case "monthly":
+      return addMonths(current, rule.interval);
+    case "yearly":
+      return addYears(current, rule.interval);
+    default:
+      return addDays(current, rule.interval);
+  }
+}
 
 export function useTasks(status?: "active" | "completed" | "archived") {
   const { user } = useAuth();
