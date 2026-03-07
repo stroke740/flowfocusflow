@@ -62,7 +62,7 @@ const SignUp = () => {
     navigate("/login");
   };
 
-  const handleOAuth = async (provider: "google" | "apple" | "github") => {
+  const handleOAuth = async (provider: "google" | "apple") => {
     setLoading(true);
     const { error } = await signInWithOAuth(provider);
     setLoading(false);
