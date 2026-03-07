@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { X, Calendar as CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { X, Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Task, TaskPriority, PRIORITY_CONFIG } from "@/types/task";
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import AddTaskInput from "./AddTaskInput";
+import RecurrencePicker, { RecurrenceRule, parseRecurrenceRule, serializeRecurrenceRule } from "./RecurrencePicker";
 
 interface TaskDetailPanelProps {
   task: Task | null;
@@ -24,6 +25,7 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState<Date>();
   const [priority, setPriority] = useState<TaskPriority>("p4");
+  const [recurrence, setRecurrence] = useState<RecurrenceRule | null>(null);
 
   useEffect(() => {
     if (task) {
@@ -31,6 +33,7 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
       setDescription(task.description || "");
       setDueDate(task.due_date ? new Date(task.due_date) : undefined);
       setPriority(task.priority);
+      setRecurrence(parseRecurrenceRule((task as any).recurrence_rule));
     }
   }, [task]);
 
@@ -44,10 +47,11 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
         description: description || null,
         due_date: dueDate?.toISOString() || null,
         priority,
-      });
+        recurrence_rule: serializeRecurrenceRule(recurrence),
+      } as any);
     }, 500);
     return () => clearTimeout(timer);
-  }, [title, description, dueDate, priority]);
+  }, [title, description, dueDate, priority, recurrence]);
 
   if (!task) return null;
 
@@ -61,7 +65,6 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
         className="fixed right-0 top-0 bottom-0 w-full sm:w-[420px] bg-card border-l border-border z-40 overflow-y-auto shadow-xl"
       >
         <div className="p-6">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-sm font-semibold text-muted-foreground">Edit Task</h2>
             <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
@@ -69,7 +72,6 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
             </button>
           </div>
 
-          {/* Title */}
           <div className="mb-4">
             <Input
               value={title}
@@ -79,7 +81,6 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
             />
           </div>
 
-          {/* Description */}
           <div className="mb-6">
             <Label className="text-xs text-muted-foreground mb-1.5 block">Description</Label>
             <Textarea
@@ -90,7 +91,6 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
             />
           </div>
 
-          {/* Due date */}
           <div className="mb-4">
             <Label className="text-xs text-muted-foreground mb-1.5 block">Due Date</Label>
             <Popover>
@@ -101,7 +101,7 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={dueDate} onSelect={setDueDate} className={cn("p-3 pointer-events-auto")} />
+                <Calendar mode="single" selected={dueDate} onSelect={setDueDate} className="p-3 pointer-events-auto" />
               </PopoverContent>
             </Popover>
             {dueDate && (
@@ -111,7 +111,12 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
             )}
           </div>
 
-          {/* Priority */}
+          {/* Recurrence */}
+          <div className="mb-4">
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Recurrence</Label>
+            <RecurrencePicker value={recurrence} onChange={setRecurrence} />
+          </div>
+
           <div className="mb-6">
             <Label className="text-xs text-muted-foreground mb-1.5 block">Priority</Label>
             <div className="flex gap-2">
@@ -132,7 +137,6 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
             </div>
           </div>
 
-          {/* Subtasks */}
           <div className="mb-6">
             <Label className="text-xs text-muted-foreground mb-2 block">
               Subtasks {task.subtasks?.length ? `(${task.subtasks.filter(s => s.status === 'completed').length}/${task.subtasks.length})` : ""}
@@ -150,7 +154,6 @@ const TaskDetailPanel = ({ task, onClose }: TaskDetailPanelProps) => {
             <AddTaskInput parentId={task.id} />
           </div>
 
-          {/* Delete */}
           <Button
             variant="ghost"
             className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
