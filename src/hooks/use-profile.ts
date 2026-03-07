@@ -28,7 +28,7 @@ export function useProfile() {
         // Profile should be auto-created by trigger, but fallback
         const { data: newProfile, error: insertErr } = await supabase
           .from("profiles")
-          .insert({ id: userId!, display_name: user?.user_metadata?.full_name || "" })
+          .insert({ id: userId!, display_name: "" })
           .select()
           .single();
         if (insertErr) throw insertErr;

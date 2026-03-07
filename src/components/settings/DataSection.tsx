@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Download, Trash2, AlertTriangle, Loader2, LogOut } from "lucide-react";
+import { Download, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const DataSection = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const userId = user?.id;
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [exporting, setExporting] = useState(false);
@@ -95,8 +95,7 @@ const DataSection = () => {
       await supabase.from("tags").delete().eq("user_id", userId);
       await supabase.from("user_preferences").delete().eq("user_id", userId);
 
-      toast.success("All data deleted. Signing out...");
-      await signOut();
+      toast.success("All data deleted.");
     } catch {
       toast.error("Failed to delete data");
     } finally {
@@ -117,16 +116,6 @@ const DataSection = () => {
         </Button>
       </div>
 
-      <div className="space-y-3 pt-6 border-t border-border">
-        <h3 className="text-sm font-semibold">Account</h3>
-        <p className="text-xs text-muted-foreground">
-          Signed in as <strong>{user?.email}</strong>
-        </p>
-        <Button variant="outline" onClick={signOut}>
-          <LogOut size={14} className="mr-2" />
-          Sign Out
-        </Button>
-      </div>
 
       <div className="space-y-3 pt-6 border-t border-border">
         <h3 className="text-sm font-semibold text-destructive flex items-center gap-2">
