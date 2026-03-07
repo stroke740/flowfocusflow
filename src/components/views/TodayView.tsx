@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { format, isToday, isBefore, startOfTomorrow } from "date-fns";
+import { format, isToday, isBefore } from "date-fns";
 import { motion } from "framer-motion";
-import { Sparkles, ChevronDown, Sun } from "lucide-react";
+import { Sparkles, ChevronDown, Sun, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task } from "@/types/task";
 import TaskList from "../tasks/TaskList";
@@ -29,29 +29,29 @@ const TodayView = ({ tasks, completedToday, onEditTask }: TodayViewProps) => {
   if (tasks.length === 0 && completedToday.length === 0) {
     return (
       <div className="text-center py-20">
-        <Sun size={48} className="mx-auto mb-4 text-warning/60" />
-        <h3 className="text-lg font-semibold mb-2">Clear skies ahead!</h3>
-        <p className="text-muted-foreground text-sm">Enjoy your free day. Or add a task above to get started.</p>
+        <Sun size={48} className="mx-auto mb-4 text-warning/40" />
+        <h3 className="text-lg font-semibold mb-1">You're all clear!</h3>
+        <p className="text-muted-foreground text-sm mb-4">Enjoy your day. ☀️</p>
+        <button className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">
+          <Plus size={16} />
+          Add a task
+        </button>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Date header */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {format(new Date(), "EEEE, MMMM d")}
-        </p>
+        <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, MMMM d")}</p>
         <span className="text-xs text-muted-foreground">{tasks.length} task{tasks.length !== 1 ? "s" : ""}</span>
       </div>
 
-      {/* Focus prompt */}
       {topP1 && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-start gap-3"
+          className="bg-primary/5 border border-primary/15 rounded-xl p-4 flex items-start gap-3"
         >
           <Sparkles size={18} className="text-primary mt-0.5 flex-shrink-0" />
           <div>
@@ -62,7 +62,6 @@ const TodayView = ({ tasks, completedToday, onEditTask }: TodayViewProps) => {
         </motion.div>
       )}
 
-      {/* Overdue */}
       {overdue.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold text-destructive uppercase tracking-wide mb-2">
@@ -72,7 +71,6 @@ const TodayView = ({ tasks, completedToday, onEditTask }: TodayViewProps) => {
         </div>
       )}
 
-      {/* Today */}
       {todayOnly.length > 0 && (
         <div>
           {overdue.length > 0 && (
@@ -84,7 +82,6 @@ const TodayView = ({ tasks, completedToday, onEditTask }: TodayViewProps) => {
         </div>
       )}
 
-      {/* Completed today */}
       {completedToday.length > 0 && (
         <div>
           <button
