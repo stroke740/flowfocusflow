@@ -5,18 +5,17 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { signUpSchema, type SignUpValues } from "@/lib/auth-validation";
 import AuthLayout from "@/components/auth/AuthLayout";
-import OAuthButtons from "@/components/auth/OAuthButtons";
 import PasswordStrengthBar from "@/components/auth/PasswordStrengthBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
+
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const SignUp = () => {
-  const { signUp, signInWithOAuth } = useAuth();
+  const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -62,25 +61,9 @@ const SignUp = () => {
     navigate("/login");
   };
 
-  const handleOAuth = async (provider: "google" | "apple") => {
-    setLoading(true);
-    const { error } = await signInWithOAuth(provider);
-    setLoading(false);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
-  };
 
   return (
     <AuthLayout title="Create your account" subtitle="Start organizing your life in seconds" step={{ current: 1, total: 3 }}>
-      <OAuthButtons onOAuth={handleOAuth} loading={loading} />
-
-      <div className="flex items-center gap-3 my-6">
-        <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground">or continue with email</span>
-        <Separator className="flex-1" />
-      </div>
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Label htmlFor="fullName">Full Name</Label>

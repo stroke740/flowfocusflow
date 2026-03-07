@@ -5,17 +5,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { loginSchema, type LoginValues } from "@/lib/auth-validation";
 import AuthLayout from "@/components/auth/AuthLayout";
-import OAuthButtons from "@/components/auth/OAuthButtons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
+
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
 
 const Login = () => {
-  const { signIn, signInWithOAuth, signInWithMagicLink } = useAuth();
+  const { signIn, signInWithMagicLink } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -46,12 +45,6 @@ const Login = () => {
     navigate("/");
   };
 
-  const handleOAuth = async (provider: "google" | "apple") => {
-    setLoading(true);
-    const { error } = await signInWithOAuth(provider);
-    setLoading(false);
-    if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-  };
 
   const handleMagicLink = async () => {
     if (!magicLinkEmail) return;
@@ -117,14 +110,6 @@ const Login = () => {
 
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to continue where you left off">
-      <OAuthButtons onOAuth={handleOAuth} loading={loading} />
-
-      <div className="flex items-center gap-3 my-6">
-        <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground">or continue with email</span>
-        <Separator className="flex-1" />
-      </div>
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Label htmlFor="email">Email</Label>

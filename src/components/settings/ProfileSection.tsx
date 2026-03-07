@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Camera, Trash2, Loader2, Lock } from "lucide-react";
+import { Camera, Trash2, Loader2 } from "lucide-react";
 
 const ProfileSection = () => {
   const { user } = useAuth();
@@ -24,7 +24,6 @@ const ProfileSection = () => {
     setNameInitialized(true);
   }
 
-  const isOAuth = !!user?.app_metadata?.provider && user.app_metadata.provider !== "email";
   const initials = (displayName || user?.email || "?").slice(0, 2).toUpperCase();
 
   const handleSaveName = async () => {
@@ -136,16 +135,9 @@ const ProfileSection = () => {
       {/* Password */}
       <div className="space-y-2">
         <Label>Password</Label>
-        {isOAuth ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Lock size={14} />
-            Password managed by {user?.app_metadata?.provider === "google" ? "Google" : user?.app_metadata?.provider || "external provider"}
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            Use the <a href="/forgot-password" className="text-primary hover:underline">forgot password</a> flow to change your password.
-          </p>
-        )}
+        <p className="text-xs text-muted-foreground">
+          Use the <a href="/forgot-password" className="text-primary hover:underline">forgot password</a> flow to change your password.
+        </p>
       </div>
     </div>
   );
