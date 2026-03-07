@@ -47,7 +47,7 @@ const SortableTaskItem = ({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : undefined,
+    opacity: isDragging ? 0.7 : undefined,
     zIndex: isDragging ? 50 : undefined,
     position: "relative" as const,
   };

@@ -152,3 +152,22 @@
       0 8px 24px rgba(79, 70, 229, 0.1);
   }
 }
+
+@layer components {
+  /* Primary button hover scale */
+  button[class*="bg-primary"]:not(:disabled) {
+    transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+  }
+  button[class*="bg-primary"]:not(:disabled):hover {
+    transform: scale(1.02);
+  }
+
+  /* Empty state float animation */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+}

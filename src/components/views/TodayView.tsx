@@ -29,7 +29,7 @@ const TodayView = ({ tasks, completedToday, onEditTask }: TodayViewProps) => {
   if (tasks.length === 0 && completedToday.length === 0) {
     return (
       <div className="text-center py-20">
-        <Sun size={48} className="mx-auto mb-4 text-warning/40" />
+        <Sun size={48} className="mx-auto mb-4 text-warning/40 animate-float" />
         <h3 className="text-lg font-semibold mb-1">You're all clear!</h3>
         <p className="text-muted-foreground text-sm mb-4">Enjoy your day. ☀️</p>
         <button className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors">

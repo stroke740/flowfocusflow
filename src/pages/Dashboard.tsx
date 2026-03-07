@@ -206,7 +206,7 @@ const Dashboard = () => {
       {/* ===== SIDEBAR ===== */}
       <aside
         className={cn(
-          "fixed md:relative top-0 left-0 h-full bg-card border-r border-border z-50 flex flex-col transition-all duration-200 ease-in-out",
+          "fixed md:relative top-0 left-0 h-full bg-card border-r border-border z-50 flex flex-col transition-all duration-[250ms] ease-in-out",
           // Desktop
           sidebarCollapsed ? "md:w-[68px]" : "md:w-[260px]",
           // Mobile
@@ -523,35 +523,43 @@ const Dashboard = () => {
                 ))}
               </div>
             ) : (
-              <>
-                {view === "today" && (
-                  <TodayView tasks={filteredTasks} completedToday={completedToday} onEditTask={handleSelectTask} />
-                )}
-                {view === "inbox" && (
-                  <AllTasksView
-                    tasks={filteredTasks}
-                    onEditTask={handleSelectTask}
-                    emptyIcon={<Inbox size={44} className="text-muted-foreground/20" />}
-                    emptyTitle="Zero tasks. You're on top of everything."
-                    emptyDescription="Tasks without a project land here."
-                  />
-                )}
-                {view === "upcoming" && <UpcomingView tasks={filteredTasks} onEditTask={handleSelectTask} />}
-                {view === "all" && <AllTasksView tasks={filteredTasks} onEditTask={handleSelectTask} groupByProject={groupByProject} />}
-                {view === "completed" && <CompletedView tasks={filteredTasks} onEditTask={handleSelectTask} />}
-                {view === "analytics" && <AnalyticsView activeTasks={activeTasks} completedTasks={completedTasks} />}
-                {view === "project" && selectedProject && (
-                  <ProjectView
-                    project={selectedProject}
-                    tasks={activeTasks}
-                    completedTasks={completedTasks}
-                    filters={filters}
-                    onEditTask={handleSelectTask}
-                    onEditProject={() => { setEditingProject(selectedProject); setProjectFormOpen(true); }}
-                    onDeleteProject={() => { setDeletingProject(selectedProject); setDeleteDialogOpen(true); }}
-                  />
-                )}
-              </>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={view + (selectedProjectId || "")}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {view === "today" && (
+                    <TodayView tasks={filteredTasks} completedToday={completedToday} onEditTask={handleSelectTask} />
+                  )}
+                  {view === "inbox" && (
+                    <AllTasksView
+                      tasks={filteredTasks}
+                      onEditTask={handleSelectTask}
+                      emptyIcon={<Inbox size={44} className="text-muted-foreground/20" />}
+                      emptyTitle="Zero tasks. You're on top of everything."
+                      emptyDescription="Tasks without a project land here."
+                    />
+                  )}
+                  {view === "upcoming" && <UpcomingView tasks={filteredTasks} onEditTask={handleSelectTask} />}
+                  {view === "all" && <AllTasksView tasks={filteredTasks} onEditTask={handleSelectTask} groupByProject={groupByProject} />}
+                  {view === "completed" && <CompletedView tasks={filteredTasks} onEditTask={handleSelectTask} />}
+                  {view === "analytics" && <AnalyticsView activeTasks={activeTasks} completedTasks={completedTasks} />}
+                  {view === "project" && selectedProject && (
+                    <ProjectView
+                      project={selectedProject}
+                      tasks={activeTasks}
+                      completedTasks={completedTasks}
+                      filters={filters}
+                      onEditTask={handleSelectTask}
+                      onEditProject={() => { setEditingProject(selectedProject); setProjectFormOpen(true); }}
+                      onDeleteProject={() => { setDeletingProject(selectedProject); setDeleteDialogOpen(true); }}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
         </div>
