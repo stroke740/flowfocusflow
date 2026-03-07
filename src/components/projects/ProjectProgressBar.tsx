@@ -1,0 +1,33 @@
+import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
+
+interface Props {
+  completed: number;
+  total: number;
+  color?: string;
+  showLabel?: boolean;
+  className?: string;
+}
+
+const ProjectProgressBar = ({ completed, total, color, showLabel = false, className }: Props) => {
+  if (total === 0) return null;
+  const pct = Math.round((completed / total) * 100);
+
+  return (
+    <div className={cn("flex items-center gap-2", className)}>
+      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${pct}%`, backgroundColor: color || "hsl(var(--primary))" }}
+        />
+      </div>
+      {showLabel && (
+        <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+          {pct}% ({completed}/{total})
+        </span>
+      )}
+    </div>
+  );
+};
+
+export default ProjectProgressBar;
