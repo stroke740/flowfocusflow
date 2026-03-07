@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          read: boolean
+          task_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          read?: boolean
+          task_id?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          read?: boolean
+          task_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           color: string
@@ -113,6 +154,10 @@ export type Database = {
           priority: Database["public"]["Enums"]["task_priority"]
           project: string | null
           project_id: string | null
+          recurrence_count: number | null
+          recurrence_end_date: string | null
+          recurrence_rule: string | null
+          reminder_minutes: number[] | null
           status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string
@@ -129,6 +174,10 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           project?: string | null
           project_id?: string | null
+          recurrence_count?: number | null
+          recurrence_end_date?: string | null
+          recurrence_rule?: string | null
+          reminder_minutes?: number[] | null
           status?: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at?: string
@@ -145,6 +194,10 @@ export type Database = {
           priority?: Database["public"]["Enums"]["task_priority"]
           project?: string | null
           project_id?: string | null
+          recurrence_count?: number | null
+          recurrence_end_date?: string | null
+          recurrence_rule?: string | null
+          reminder_minutes?: number[] | null
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string

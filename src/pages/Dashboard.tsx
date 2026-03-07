@@ -21,7 +21,9 @@ import ProjectView from "@/components/views/ProjectView";
 import ProjectFormDialog from "@/components/projects/ProjectFormDialog";
 import DeleteProjectDialog from "@/components/projects/DeleteProjectDialog";
 import ProjectProgressBar from "@/components/projects/ProjectProgressBar";
-import { isToday, isBefore, startOfTomorrow } from "date-fns";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
+import OverdueReviewModal from "@/components/notifications/OverdueReviewModal";
+import { isToday, isBefore, startOfDay, startOfTomorrow } from "date-fns";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -52,7 +54,7 @@ const Dashboard = () => {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
-
+  const [overdueReviewOpen, setOverdueReviewOpen] = useState(false);
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
   const { data: tags = [] } = useTags();
@@ -96,7 +98,25 @@ const Dashboard = () => {
   const isLoading = view === "completed" ? loadingCompleted : loadingActive;
 
   const selectedProject = projects.find((p) => p.id === selectedProjectId) || null;
-  const selectedProjectCounts = selectedProjectId ? taskCounts.get(selectedProjectId) : null;
+
+  // Overdue count for badge
+  const overdueCount = useMemo(
+    () => activeTasks.filter((t) => t.due_date && isBefore(new Date(t.due_date), startOfDay(new Date()))).length,
+    [activeTasks]
+  );
+
+  // Show overdue review on first load if there are overdue tasks
+  useEffect(() => {
+    if (overdueCount > 0 && !loadingActive) {
+      const dismissed = sessionStorage.getItem("overdue_dismissed");
+      if (!dismissed) setOverdueReviewOpen(true);
+    }
+  }, [overdueCount, loadingActive]);
+
+  const handleNavigateToTask = (taskId: string) => {
+    const task = [...activeTasks, ...completedTasks].find((t) => t.id === taskId);
+    if (task) setEditingTask(task);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -279,18 +299,30 @@ const Dashboard = () => {
             )}
             <h1 className="text-2xl font-bold">{currentTitle}</h1>
 
-            {view === "all" && (
-              <button
-                onClick={() => setGroupByProject(!groupByProject)}
-                className={cn(
-                  "ml-auto p-2 rounded-lg transition-colors",
-                  groupByProject ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
-                )}
-                title="Group by project"
-              >
-                <Layers size={16} />
-              </button>
-            )}
+            <div className="ml-auto flex items-center gap-1">
+              {view === "all" && (
+                <button
+                  onClick={() => setGroupByProject(!groupByProject)}
+                  className={cn(
+                    "p-2 rounded-lg transition-colors",
+                    groupByProject ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
+                  )}
+                  title="Group by project"
+                >
+                  <Layers size={16} />
+                </button>
+              )}
+              {overdueCount > 0 && (
+                <button
+                  onClick={() => setOverdueReviewOpen(true)}
+                  className="p-2 rounded-xl hover:bg-destructive/10 text-destructive transition-colors text-xs font-medium"
+                >
+                  {overdueCount} overdue
+                </button>
+              )}
+              <NotificationCenter onNavigateToTask={handleNavigateToTask} />
+            </div>
+
           </div>
 
           {view !== "project" && (
@@ -354,6 +386,15 @@ const Dashboard = () => {
         project={deletingProject}
         taskCount={deletingProject ? (taskCounts.get(deletingProject.id)?.total || 0) : 0}
         onConfirm={handleDeleteProject}
+      />
+      <OverdueReviewModal
+        tasks={activeTasks}
+        open={overdueReviewOpen}
+        onOpenChange={(open) => {
+          setOverdueReviewOpen(open);
+          if (!open) sessionStorage.setItem("overdue_dismissed", "true");
+        }}
+        onEditTask={setEditingTask}
       />
     </div>
   );
