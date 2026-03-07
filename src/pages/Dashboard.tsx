@@ -359,6 +359,7 @@ const Dashboard = () => {
             </div>
 
           </div>
+          )}
 
           {view !== "completed" && view !== "project" && view !== "settings" && (
             <div className="mb-4">
