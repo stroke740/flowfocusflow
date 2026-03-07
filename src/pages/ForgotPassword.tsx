@@ -54,7 +54,7 @@ const ForgotPassword = () => {
               Try a different email
             </Button>
             <p className="text-xs text-muted-foreground">
-              <Link to="/login" className="text-primary hover:underline">Back to login</Link>
+              <Link to="/signup" className="text-primary hover:underline">Back to sign up</Link>
             </p>
           </div>
         </div>
@@ -88,11 +88,11 @@ const ForgotPassword = () => {
       </form>
 
       <Link
-        to="/login"
+        to="/signup"
         className="flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground mt-6"
       >
         <ArrowLeft size={14} />
-        Back to login
+        Back to sign up
       </Link>
     </AuthLayout>
   );

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { signUpSchema, type SignUpValues } from "@/lib/auth-validation";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -58,7 +58,7 @@ const SignUp = () => {
       title: "Check your email",
       description: "We've sent you a verification link to confirm your account.",
     });
-    navigate("/login");
+    navigate("/dashboard");
   };
 
 
@@ -172,12 +172,6 @@ const SignUp = () => {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-muted-foreground mt-6">
-        Already have an account?{" "}
-        <Link to="/login" className="text-primary hover:underline font-medium">
-          Sign in
-        </Link>
-      </p>
     </AuthLayout>
   );
 };
