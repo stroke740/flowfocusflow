@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 interface AuthContextType {
   user: User | null;
@@ -8,7 +9,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithOAuth: (provider: "google" | "apple" | "github") => Promise<{ error: any }>;
+  signInWithOAuth: (provider: "google" | "apple") => Promise<{ error: any }>;
   signInWithMagicLink: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
@@ -60,12 +61,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
-  const signInWithOAuth = async (provider: "google" | "apple" | "github") => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: window.location.origin },
+  const signInWithOAuth = async (provider: "google" | "apple") => {
+    const result = await lovable.auth.signInWithOAuth(provider, {
+      redirect_uri: window.location.origin,
     });
-    return { error };
+    if (result.error) {
+      return { error: result.error };
+    }
+    return { error: null };
   };
 
   const signInWithMagicLink = async (email: string) => {
