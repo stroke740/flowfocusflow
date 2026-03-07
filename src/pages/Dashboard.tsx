@@ -359,19 +359,21 @@ const Dashboard = () => {
 
           </div>
 
-          {view !== "project" && (
+          {view !== "completed" && view !== "project" && view !== "settings" && (
             <div className="mb-4">
               <FilterBar filters={filters} onChange={setFilters} tags={tags} projects={projectNames} />
             </div>
           )}
 
-          {view !== "completed" && view !== "project" && (
+          {view !== "completed" && view !== "project" && view !== "settings" && (
             <div className="mb-4">
               <AddTaskInput />
             </div>
           )}
 
-          {isLoading && view !== "project" ? (
+          {view === "settings" ? (
+            <SettingsPage />
+          ) : isLoading && view !== "project" ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-16 bg-muted/50 rounded-xl animate-pulse" />
