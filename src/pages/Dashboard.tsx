@@ -464,6 +464,13 @@ const Dashboard = () => {
         onCreateProject={() => { setEditingProject(null); setProjectFormOpen(true); }}
         currentProjectName={view === "project" && selectedProject ? selectedProject.name : undefined}
       />
+      <FocusMode
+        open={focusOpen}
+        onClose={() => setFocusOpen(false)}
+        task={focusTask}
+        tasks={activeTasks}
+        onSelectTask={setFocusTask}
+      />
     </div>
   );
 };
