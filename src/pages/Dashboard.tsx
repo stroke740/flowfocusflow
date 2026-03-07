@@ -682,11 +682,12 @@ const Dashboard = () => {
       {/* ===== MOBILE: FAB (Floating Action Button) ===== */}
       {isMobile && showAddTask && (
         <motion.button
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.2 }}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 400, damping: 22, delay: 0.15 }}
           onClick={() => setMobileAddOpen(true)}
-          className="fixed right-4 bottom-20 z-30 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+          className="fixed right-4 bottom-[calc(4rem+env(safe-area-inset-bottom)+8px)] z-30 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-90 transition-transform"
         >
           <Plus size={24} />
         </motion.button>
@@ -698,8 +699,8 @@ const Dashboard = () => {
       )}
 
       {/* ===== MOBILE BOTTOM TAB BAR ===== */}
-      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-card/95 backdrop-blur-lg border-t border-border z-30 safe-area-bottom">
-        <div className="flex items-center justify-around px-1 py-1">
+      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-card/95 backdrop-blur-lg border-t border-border z-30 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around px-1 py-1.5">
           {mobileTabs.map((tab) => {
             const isActive =
               tab.id === "search" ? false
