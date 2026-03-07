@@ -1,12 +1,11 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Inbox, CalendarDays, CheckCircle2, LogOut, Menu,
+  Inbox, CalendarDays, CheckCircle2, Menu,
   Calendar, List, Layers, Plus, FolderOpen, Search, Settings,
   BarChart3, Timer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
 import { ViewType, FilterState, DEFAULT_FILTERS, Task } from "@/types/task";
 import { useTasks, useTags } from "@/hooks/use-tasks";
 import { useProjects, useProjectTaskCounts, useProjectMutations, Project } from "@/hooks/use-projects";
@@ -46,7 +45,6 @@ const builtInViews: { id: ViewType; label: string; icon: typeof Inbox }[] = [
 ];
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [view, setView] = useState<ViewType | "project">("today");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -136,10 +134,6 @@ const Dashboard = () => {
     setEditingTask(task);
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/signup");
-  };
 
   const handleSaveProject = async (data: { name: string; color: string; icon: string }) => {
     if (editingProject) {
