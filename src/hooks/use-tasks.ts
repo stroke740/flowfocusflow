@@ -129,8 +129,20 @@ export function useTaskMutations() {
       if (error) throw error;
       return data;
     },
-    onSuccess: invalidate,
-    onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onMutate: async (newTask) => {
+      await qc.cancelQueries({ queryKey: ["tasks"] });
+      const prev = qc.getQueryData(["tasks", userId, "active"]);
+      qc.setQueryData(["tasks", userId, "active"], (old: Task[] | undefined) => [
+        ...(old || []),
+        { ...newTask, id: crypto.randomUUID(), user_id: userId, status: "active", created_at: new Date().toISOString(), updated_at: new Date().toISOString(), position: 0, tags: [], subtasks: [] } as Task,
+      ]);
+      return { prev };
+    },
+    onError: (e, _, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["tasks", userId, "active"], ctx.prev);
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    },
+    onSettled: invalidate,
   });
 
   const updateTask = useMutation({
@@ -153,8 +165,19 @@ export function useTaskMutations() {
       const { error } = await supabase.from("tasks").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: invalidate,
-    onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["tasks"] });
+      const prev = qc.getQueryData(["tasks", userId, "active"]);
+      qc.setQueryData(["tasks", userId, "active"], (old: Task[] | undefined) =>
+        (old || []).filter((t) => t.id !== id)
+      );
+      return { prev };
+    },
+    onError: (e, _, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["tasks", userId, "active"], ctx.prev);
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    },
+    onSettled: invalidate,
   });
 
   const completeTask = useMutation({
@@ -199,7 +222,18 @@ export function useTaskMutations() {
 
       return data;
     },
-    onSuccess: invalidate,
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["tasks"] });
+      const prev = qc.getQueryData(["tasks", userId, "active"]);
+      qc.setQueryData(["tasks", userId, "active"], (old: Task[] | undefined) =>
+        (old || []).filter((t) => t.id !== id)
+      );
+      return { prev };
+    },
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["tasks", userId, "active"], ctx.prev);
+    },
+    onSettled: invalidate,
   });
 
   const uncompleteTask = useMutation({

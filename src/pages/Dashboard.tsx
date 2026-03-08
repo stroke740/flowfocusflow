@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
 import {
   Home, CalendarDays, CheckCircle2,
@@ -32,6 +33,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
 import { isToday, isBefore, startOfDay, startOfTomorrow, format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import {
   Sheet,
   SheetContent,
@@ -79,6 +81,19 @@ const Dashboard = () => {
   const { data: profile } = useProfile();
   const { data: prefs } = usePreferences();
   const updatePrefs = useUpdatePreferences();
+  const qc = useQueryClient();
+  const { requestPermission } = usePushNotifications();
+
+  // Request notification permission on first load
+  useEffect(() => {
+    if (prefs?.push_notifications) {
+      requestPermission();
+    }
+  }, [prefs?.push_notifications, requestPermission]);
+
+  const handleRefresh = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ["tasks"] });
+  }, [qc]);
 
   const isDark = prefs?.theme === "dark" || (prefs?.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
