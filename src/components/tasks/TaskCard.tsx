@@ -89,10 +89,10 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
       className={cn(
-        "flex items-start gap-3 px-4 py-3 rounded-2xl bg-card border border-border/60 transition-all",
-        "active:scale-[0.98] active:bg-muted/50",
+        "group flex items-start gap-3.5 px-4 py-3.5 rounded-2xl bg-card shadow-card transition-all",
+        "active:scale-[0.98] active:shadow-card-hover",
         task.priority !== "p4" && "border-l-[3px]",
-        due?.overdue && !isCompleted && "bg-destructive/[0.03]",
+        due?.overdue && !isCompleted && "bg-destructive/[0.02]",
         isCompleted && "opacity-50"
       )}
       style={{
@@ -104,12 +104,11 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
       <button
         onClick={(e) => { e.stopPropagation(); handleComplete(); }}
         className={cn(
-          "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5",
+          "w-[22px] h-[22px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 mt-[1px] transition-all duration-150",
           isCompleted || completing
-            ? "bg-primary border-primary"
-            : "border-muted-foreground/25 active:border-primary/60"
+            ? "bg-primary border-primary scale-100"
+            : "border-muted-foreground/20 hover:border-primary/40 active:border-primary/60"
         )}
-        style={{ transition: "all 150ms ease" }}
       >
         {(isCompleted || completing) && (
           <motion.div
@@ -126,7 +125,7 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
       <div className="flex-1 min-w-0">
         <p
           className={cn(
-            "text-sm font-medium leading-snug line-clamp-2",
+            "text-[14px] font-medium leading-snug line-clamp-2 tracking-[-0.01em]",
             (isCompleted || struck) && "line-through text-muted-foreground"
           )}
           style={{ transition: "all 200ms ease" }}
@@ -134,13 +133,13 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
           {task.title}
         </p>
 
-        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
           {due && (
             <span className={cn(
-              "inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full",
+              "inline-flex items-center gap-1 text-[11px] font-medium px-2 py-[3px] rounded-md",
               due.overdue && !isCompleted
-                ? "bg-destructive/10 text-destructive font-semibold"
-                : "bg-muted text-muted-foreground"
+                ? "bg-destructive/8 text-destructive"
+                : "bg-muted/80 text-muted-foreground"
             )}>
               <Calendar size={10} />
               {due.text}
@@ -148,14 +147,14 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
           )}
 
           {hasRecurrence && (
-            <span className="inline-flex items-center gap-0.5 text-[11px] text-primary/70 bg-primary/5 px-1.5 py-0.5 rounded-full">
+            <span className="inline-flex items-center gap-0.5 text-[11px] text-primary/60 bg-primary/5 px-1.5 py-[3px] rounded-md">
               <Repeat size={10} />
             </span>
           )}
 
           {task.project && (
-            <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-[3px] rounded-md bg-muted/80 text-muted-foreground">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
               {task.project}
             </span>
           )}
@@ -163,33 +162,33 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
           {task.tags?.slice(0, 2).map((tag) => (
             <span
               key={tag.id}
-              className="text-[11px] px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: tag.color + "18", color: tag.color }}
+              className="text-[11px] font-medium px-2 py-[3px] rounded-md"
+              style={{ backgroundColor: tag.color + "12", color: tag.color }}
             >
               {tag.name}
             </span>
           ))}
           {(task.tags?.length || 0) > 2 && (
-            <span className="text-[10px] text-muted-foreground">+{(task.tags?.length || 0) - 2}</span>
+            <span className="text-[10px] text-muted-foreground/60">+{(task.tags?.length || 0) - 2}</span>
           )}
 
           {subtasksTotal > 0 && (
             <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-              <div className="w-10 h-1.5 rounded-full bg-muted overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${(subtasksDone / subtasksTotal) * 100}%` }} />
+              <div className="w-10 h-1 rounded-full bg-muted overflow-hidden">
+                <div className="h-full bg-primary/70 rounded-full transition-all" style={{ width: `${(subtasksDone / subtasksTotal) * 100}%` }} />
               </div>
-              {subtasksDone}/{subtasksTotal}
+              <span className="tabular-nums">{subtasksDone}/{subtasksTotal}</span>
             </span>
           )}
         </div>
       </div>
 
-      {/* Actions — always visible on mobile */}
+      {/* Actions */}
       <div className="flex-shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button onClick={(e) => e.stopPropagation()} className="p-1.5 -mr-1 rounded-xl active:bg-muted">
-              <MoreHorizontal size={16} className="text-muted-foreground/50" />
+            <button onClick={(e) => e.stopPropagation()} className="p-1.5 -mr-1 rounded-xl active:bg-muted opacity-40 group-hover:opacity-70 transition-opacity">
+              <MoreHorizontal size={16} className="text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44 rounded-xl">
