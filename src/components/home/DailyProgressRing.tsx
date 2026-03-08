@@ -20,12 +20,11 @@ const DailyProgressRing = ({
   activeProjectFilter, onProjectFilter, taskCount,
 }: Props) => {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const radius = 40;
-  const stroke = 5;
+  const radius = 38;
+  const stroke = 4.5;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (pct / 100) * circumference;
 
-  // Current streak
   const streak = useMemo(() => {
     let count = 0;
     let day = startOfDay(new Date());
@@ -44,7 +43,6 @@ const DailyProgressRing = ({
     return count;
   }, [completedTasks]);
 
-  // Best streak
   const bestStreak = useMemo(() => {
     if (completedTasks.length === 0) return 0;
     const days = new Set(
@@ -64,7 +62,6 @@ const DailyProgressRing = ({
     return Math.max(max, cur);
   }, [completedTasks]);
 
-  // Weekly average
   const weeklyAvg = useMemo(() => {
     const days = eachDayOfInterval({ start: subDays(new Date(), 6), end: new Date() });
     const totalDone = days.reduce((sum, day) => {
@@ -76,18 +73,27 @@ const DailyProgressRing = ({
   }, [completedTasks]);
 
   return (
-    <div className="flex flex-col items-center gap-4 py-2">
-      {/* Progress Ring */}
-      <div className="relative w-[100px] h-[100px]">
-        <svg width="100" height="100" viewBox="0 0 100 100" className="-rotate-90">
+    <div className="flex flex-col items-center gap-5 py-3">
+      {/* Progress Ring with subtle glow */}
+      <div className="relative w-[96px] h-[96px]">
+        {/* Background glow */}
+        {pct > 0 && (
+          <motion.div
+            className="absolute inset-[-8px] rounded-full bg-primary/8 blur-xl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          />
+        )}
+        <svg width="96" height="96" viewBox="0 0 96 96" className="-rotate-90 relative z-10">
           <circle
-            cx="50" cy="50" r={radius}
+            cx="48" cy="48" r={radius}
             fill="none"
-            stroke="hsl(var(--border))"
+            stroke="hsl(var(--muted))"
             strokeWidth={stroke}
           />
           <motion.circle
-            cx="50" cy="50" r={radius}
+            cx="48" cy="48" r={radius}
             fill="none"
             stroke="hsl(var(--primary))"
             strokeWidth={stroke}
@@ -95,94 +101,104 @@ const DailyProgressRing = ({
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
           />
         </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold">{pct}%</span>
-          <span className="text-[11px] text-muted-foreground">
-            {completed}/{total} today
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+          <motion.span
+            className="text-[22px] font-bold tracking-tight"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+          >
+            {pct}%
+          </motion.span>
+          <span className="text-[10px] text-muted-foreground font-medium">
+            {completed}/{total}
           </span>
         </div>
       </div>
 
       {/* Stat Cards Row */}
-      <div className="grid grid-cols-3 gap-2.5 w-full">
+      <div className="grid grid-cols-3 gap-2 w-full">
         <StatPill
-          icon={<Flame size={14} className="text-warning" />}
+          icon={<Flame size={13} className="text-warning" />}
           value={`${streak}d`}
-          label="TOP STREAK"
+          label="STREAK"
+          delay={0.1}
         />
         <StatPill
-          icon={<TrendingUp size={14} className="text-primary" />}
+          icon={<TrendingUp size={13} className="text-primary" />}
           value={`${weeklyAvg}%`}
-          label="WEEKLY AVG"
+          label="WEEKLY"
+          delay={0.2}
         />
         <StatPill
-          icon={<Trophy size={14} className="text-warning" />}
+          icon={<Trophy size={13} className="text-warning" />}
           value={`${bestStreak}d`}
-          label="BEST STREAK"
+          label="BEST"
+          delay={0.3}
         />
-      </div>
-
-      {/* Horizontal progress bar */}
-      <div className="w-full flex items-center gap-2">
-        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-          <motion.div
-            className="h-full rounded-full bg-foreground/70"
-            initial={{ width: 0 }}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-          />
-        </div>
       </div>
 
       {/* Project / Tag filter chips */}
-      <div className="flex items-center gap-2 w-full overflow-x-auto pb-1 no-scrollbar">
-        <button
+      <div className="flex items-center gap-2 w-full overflow-x-auto pb-0.5 no-scrollbar">
+        <motion.button
           onClick={() => onProjectFilter(null)}
           className={cn(
-            "flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-colors",
+            "flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200",
             !activeProjectFilter
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-muted-foreground hover:bg-muted/80"
+              ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+              : "bg-muted text-muted-foreground hover:bg-accent"
           )}
+          whileTap={{ scale: 0.95 }}
         >
           All ({taskCount})
-        </button>
+        </motion.button>
         {projects.map((p) => (
-          <button
+          <motion.button
             key={p.id}
             onClick={() => onProjectFilter(activeProjectFilter === p.id ? null : p.id)}
             className={cn(
-              "flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors flex items-center gap-1.5",
+              "flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-medium transition-all duration-200 flex items-center gap-1.5",
               activeProjectFilter === p.id
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                : "bg-muted text-muted-foreground hover:bg-accent"
             )}
+            whileTap={{ scale: 0.95 }}
           >
-            <span>{p.icon}</span> {p.name}
-          </button>
+            <span className="text-[12px]">{p.icon}</span> {p.name}
+          </motion.button>
         ))}
       </div>
 
       {/* Section header */}
-      <div className="w-full">
-        <h2 className="text-[16px] font-bold tracking-tight">Today's Tasks</h2>
+      <div className="w-full flex items-center justify-between">
+        <h2 className="text-[15px] font-bold tracking-tight">Today's Tasks</h2>
+        <span className="text-[11px] text-muted-foreground font-medium tabular-nums">
+          {completed} of {total} done
+        </span>
       </div>
     </div>
   );
 };
 
-function StatPill({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
+function StatPill({ icon, value, label, delay = 0 }: { icon: React.ReactNode; value: string; label: string; delay?: number }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5">
-      <div className="flex-shrink-0">{icon}</div>
-      <div className="min-w-0">
-        <p className="text-sm font-bold leading-tight">{value}</p>
-        <p className="text-[9px] text-muted-foreground font-medium tracking-wider leading-tight">{label}</p>
+    <motion.div
+      className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-3 py-2.5"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.35 }}
+    >
+      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-muted/60 flex items-center justify-center">
+        {icon}
       </div>
-    </div>
+      <div className="min-w-0">
+        <p className="text-[13px] font-bold leading-tight tabular-nums">{value}</p>
+        <p className="text-[8px] text-muted-foreground font-semibold tracking-widest leading-tight">{label}</p>
+      </div>
+    </motion.div>
   );
 }
 

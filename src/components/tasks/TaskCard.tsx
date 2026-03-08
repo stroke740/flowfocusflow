@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
-import { MoreHorizontal, Trash2, Pencil, Calendar, Check, Repeat, SkipForward } from "lucide-react";
+import { MoreHorizontal, Trash2, Pencil, Check, Repeat, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task, PRIORITY_CONFIG } from "@/types/task";
 import { useTaskMutations } from "@/hooks/use-tasks";
@@ -15,11 +15,11 @@ interface TaskCardProps {
   completionCount?: number;
 }
 
-const PRIORITY_RING: Record<string, string> = {
-  p1: "border-destructive text-destructive hover:bg-destructive/8",
-  p2: "border-warning text-warning hover:bg-warning/8",
-  p3: "border-primary/40 text-primary/40 hover:bg-primary/5",
-  p4: "border-muted-foreground/30 text-muted-foreground/30 hover:bg-muted-foreground/5",
+const PRIORITY_COLORS: Record<string, string> = {
+  p1: "bg-destructive/10",
+  p2: "bg-warning/10",
+  p3: "bg-primary/8",
+  p4: "bg-muted",
 };
 
 function formatDueDate(dateStr: string | null) {
@@ -77,31 +77,27 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
     toast({ title: "Occurrence skipped" });
   };
 
-  // Progress for subtasks
   const subtaskPct = subtasksTotal > 0 ? (subtasksDone / subtasksTotal) * 100 : 0;
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0 }}
-      animate={{ opacity: completing ? 0.4 : isCompleted ? 0.5 : 1 }}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: completing ? 0.4 : isCompleted ? 0.5 : 1, y: 0 }}
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
       className={cn(
-        "group flex items-center gap-3 p-3 rounded-2xl border border-border bg-card cursor-pointer mb-2",
-        "hover:shadow-task-hover transition-all duration-150",
+        "group relative flex items-center gap-3 p-3.5 rounded-2xl border border-border/60 bg-card cursor-pointer mb-2",
+        "hover:border-border hover:shadow-sm transition-all duration-200",
         isCompleted && "opacity-60"
       )}
       onClick={() => onEdit(task)}
     >
-      {/* Icon / Priority indicator */}
+      {/* Priority icon */}
       <div
         className={cn(
-          "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
-          task.priority === "p1" ? "bg-destructive/10" :
-          task.priority === "p2" ? "bg-warning/10" :
-          task.priority === "p3" ? "bg-primary/10" :
-          "bg-muted"
+          "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
+          PRIORITY_COLORS[task.priority] || "bg-muted"
         )}
       >
         <span className="text-base">
@@ -113,32 +109,31 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
       <div className="flex-1 min-w-0">
         <p
           className={cn(
-            "text-[13.5px] leading-tight font-medium truncate",
+            "text-[13.5px] leading-snug font-medium truncate",
             isCompleted && "line-through text-muted-foreground"
           )}
         >
           {task.title}
         </p>
 
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2 mt-0.5">
           {hasRecurrence && (
-            <span className="inline-flex items-center gap-0.5 text-[11px] text-warning font-semibold">
+            <span className="inline-flex items-center text-[11px] text-warning">
               <Repeat size={10} />
             </span>
           )}
           {due && (
-            <span className={cn("text-[11px] font-semibold", due.color)}>
+            <span className={cn("text-[11px]", due.color)}>
               {due.text}
             </span>
           )}
           {subtasksTotal > 0 && (
-            <span className="text-[11px] text-muted-foreground">
-              {subtasksDone} total
+            <span className="text-[11px] text-muted-foreground tabular-nums">
+              {subtasksDone}/{subtasksTotal}
             </span>
           )}
         </div>
 
-        {/* Mini progress bar */}
         {subtasksTotal > 0 && (
           <div className="mt-1.5 h-[3px] w-12 rounded-full bg-muted overflow-hidden">
             <motion.div
@@ -150,13 +145,12 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
           </div>
         )}
 
-        {/* Tags */}
         {task.tags && task.tags.length > 0 && (
-          <div className="flex items-center gap-1 mt-1">
-            {task.tags.slice(0, 2).map((tag) => (
+          <div className="flex items-center gap-1 mt-1.5">
+            {task.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag.id}
-                className="w-2 h-2 rounded-full flex-shrink-0"
+                className="w-2 h-2 rounded-full flex-shrink-0 ring-1 ring-background"
                 style={{ backgroundColor: tag.color || "hsl(var(--primary))" }}
               />
             ))}
@@ -164,23 +158,29 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
         )}
       </div>
 
-      {/* Circular checkbox on right */}
+      {/* Checkbox */}
       <button
         onClick={(e) => { e.stopPropagation(); handleComplete(); }}
         className={cn(
-          "w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150",
+          "w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200",
           isCompleted || completing
-            ? "bg-primary border-primary"
-            : "border-muted-foreground/25 hover:border-primary/50"
+            ? "bg-primary border-primary scale-100"
+            : "border-muted-foreground/20 hover:border-primary/50 hover:bg-primary/5"
         )}
       >
         {(isCompleted || completing) && (
-          <Check size={14} className="text-primary-foreground" strokeWidth={3} />
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 25 }}
+          >
+            <Check size={13} className="text-primary-foreground" strokeWidth={3} />
+          </motion.div>
         )}
       </button>
 
-      {/* Context menu - hidden, shown on hover */}
-      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-100 absolute right-12 sm:relative sm:right-auto">
+      {/* Context menu */}
+      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 absolute right-12 sm:relative sm:right-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg hover:bg-muted transition-colors">

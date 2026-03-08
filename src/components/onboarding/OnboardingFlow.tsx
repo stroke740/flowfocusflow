@@ -12,29 +12,41 @@ const steps = [
     icon: Sparkles,
     emoji: "🌱",
     title: "Welcome to FocusFlow",
+    subtitle: "Your productivity companion",
     description: "Build better habits, one day at a time.\nLet's set up your daily routine in under a minute.",
-    bg: "from-primary/10 to-primary/5",
+    bg: "from-primary/12 via-primary/6 to-transparent",
+    iconBg: "bg-primary/10",
+    accent: "shadow-primary/20",
   },
   {
     icon: Target,
     emoji: "🎯",
     title: "Capture Everything",
+    subtitle: "Never forget a task",
     description: "Quickly add tasks with natural language.\nSet priorities, due dates, and tags in one line.",
-    bg: "from-success/10 to-success/5",
+    bg: "from-success/12 via-success/6 to-transparent",
+    iconBg: "bg-success/10",
+    accent: "shadow-success/20",
   },
   {
     icon: Zap,
     emoji: "⚡",
     title: "Stay Focused",
+    subtitle: "Deep work, made easy",
     description: "Use Focus Timer to power through tasks.\nTrack streaks and celebrate your progress.",
-    bg: "from-warning/10 to-warning/5",
+    bg: "from-warning/12 via-warning/6 to-transparent",
+    iconBg: "bg-warning/10",
+    accent: "shadow-warning/20",
   },
   {
     icon: CheckCircle2,
     emoji: "🚀",
     title: "You're All Set!",
+    subtitle: "Let's get productive",
     description: "Start adding tasks and build momentum.\nYour productivity journey begins now.",
-    bg: "from-primary/10 to-primary/5",
+    bg: "from-primary/12 via-primary/6 to-transparent",
+    iconBg: "bg-primary/10",
+    accent: "shadow-primary/20",
   },
 ];
 
@@ -52,17 +64,57 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background overflow-hidden">
+      {/* Ambient background glow */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`bg-${step}`}
+          className={cn(
+            "absolute inset-0 bg-gradient-to-b opacity-60",
+            current.bg
+          )}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.6 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6 }}
+        />
+      </AnimatePresence>
+
+      {/* Decorative circles */}
+      <motion.div
+        className="absolute w-[500px] h-[500px] rounded-full bg-primary/[0.03] blur-3xl"
+        animate={{
+          x: [0, 30, -20, 0],
+          y: [0, -20, 30, 0],
+        }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        style={{ top: "-10%", right: "-15%" }}
+      />
+      <motion.div
+        className="absolute w-[400px] h-[400px] rounded-full bg-primary/[0.02] blur-3xl"
+        animate={{
+          x: [0, -20, 30, 0],
+          y: [0, 30, -20, 0],
+        }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        style={{ bottom: "-5%", left: "-10%" }}
+      />
+
       {/* Step indicators */}
-      <div className="absolute top-8 flex items-center gap-2">
+      <div className="absolute top-10 flex items-center gap-2.5">
         {steps.map((_, i) => (
           <motion.div
             key={i}
             className={cn(
-              "h-2 rounded-full transition-all duration-300",
-              i === step ? "w-8 bg-primary" : i < step ? "w-2 bg-primary/40" : "w-2 bg-muted-foreground/20"
+              "h-1.5 rounded-full transition-all duration-500",
+              i === step
+                ? "w-10 bg-primary"
+                : i < step
+                ? "w-3 bg-primary/50"
+                : "w-3 bg-muted-foreground/15"
             )}
             layout
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
           />
         ))}
       </div>
@@ -71,34 +123,60 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       <AnimatePresence mode="wait">
         <motion.div
           key={step}
-          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          initial={{ opacity: 0, y: 40, scale: 0.92 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, scale: 0.95 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col items-center text-center px-8 max-w-sm"
+          exit={{ opacity: 0, y: -30, scale: 0.95 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="relative flex flex-col items-center text-center px-8 max-w-sm"
         >
-          {/* Icon */}
+          {/* Icon container with glow */}
           <motion.div
             className={cn(
-              "w-24 h-24 rounded-3xl flex items-center justify-center mb-8 bg-gradient-to-br",
-              current.bg
+              "relative w-28 h-28 rounded-[2rem] flex items-center justify-center mb-10",
+              current.iconBg
             )}
-            initial={{ rotate: -10, scale: 0.8 }}
+            initial={{ rotate: -12, scale: 0.7 }}
             animate={{ rotate: 0, scale: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
           >
-            <span className="text-4xl">{current.emoji}</span>
+            {/* Glow ring */}
+            <motion.div
+              className={cn("absolute inset-[-4px] rounded-[2.25rem] bg-gradient-to-br opacity-40", current.bg)}
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <span className="text-5xl relative z-10">{current.emoji}</span>
           </motion.div>
 
+          {/* Subtitle chip */}
+          <motion.span
+            className="inline-block px-3.5 py-1 rounded-full bg-primary/8 text-primary text-[11px] font-semibold tracking-wide uppercase mb-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+          >
+            {current.subtitle}
+          </motion.span>
+
           {/* Title */}
-          <h1 className="text-2xl font-bold text-foreground mb-3 font-heading">
+          <motion.h1
+            className="text-[26px] font-bold text-foreground mb-3 tracking-tight leading-tight"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25, duration: 0.4 }}
+          >
             {current.title}
-          </h1>
+          </motion.h1>
 
           {/* Description */}
-          <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
+          <motion.p
+            className="text-muted-foreground text-[14px] leading-relaxed whitespace-pre-line max-w-[280px]"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+          >
             {current.description}
-          </p>
+          </motion.p>
         </motion.div>
       </AnimatePresence>
 
@@ -106,25 +184,48 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       <motion.button
         onClick={next}
         className={cn(
-          "mt-12 flex items-center justify-center gap-2 px-10 py-4 rounded-2xl font-semibold text-sm",
-          "bg-primary text-primary-foreground shadow-lg",
-          "hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+          "mt-14 flex items-center justify-center gap-2.5 px-12 py-4 rounded-2xl font-semibold text-[15px]",
+          "bg-primary text-primary-foreground",
+          "shadow-lg shadow-primary/25",
+          "hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.97]",
+          "transition-all duration-200"
         )}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.4 }}
         whileTap={{ scale: 0.96 }}
       >
         {isLast ? "Get Started" : "Continue"}
-        <ArrowRight size={16} />
+        <motion.div
+          animate={{ x: [0, 4, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <ArrowRight size={17} />
+        </motion.div>
       </motion.button>
 
       {/* Skip */}
       {!isLast && (
-        <button
+        <motion.button
           onClick={onComplete}
-          className="mt-4 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="mt-5 text-[12px] text-muted-foreground/60 hover:text-muted-foreground transition-colors duration-200"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.3 }}
         >
           Skip intro
-        </button>
+        </motion.button>
       )}
+
+      {/* Step counter */}
+      <motion.div
+        className="absolute bottom-8 text-[11px] text-muted-foreground/40 font-medium tabular-nums"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        {step + 1} of {steps.length}
+      </motion.div>
     </div>
   );
 };
