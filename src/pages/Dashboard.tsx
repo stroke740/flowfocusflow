@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
 import {
   Home, CalendarDays, CheckCircle2,
   Calendar, Plus, Search, FolderOpen, User,
@@ -72,6 +73,7 @@ const Dashboard = () => {
   const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
   const [homeProjectFilter, setHomeProjectFilter] = useState<string | null>(null);
   const [fabTaskOpen, setFabTaskOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("focusflow_onboarded"));
 
   const { user } = useAuth();
   const { data: profile } = useProfile();
@@ -199,6 +201,17 @@ const Dashboard = () => {
 
   const displayName = profile?.display_name || user?.email?.split("@")[0] || "";
   const showGreetingHeader = view === "today" || view === "inbox";
+
+  if (showOnboarding) {
+    return (
+      <OnboardingFlow
+        onComplete={() => {
+          localStorage.setItem("focusflow_onboarded", "1");
+          setShowOnboarding(false);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden safe-area-top">
