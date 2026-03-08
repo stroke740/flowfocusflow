@@ -73,6 +73,7 @@ const Dashboard = () => {
   const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
   const [homeProjectFilter, setHomeProjectFilter] = useState<string | null>(null);
   const [fabTaskOpen, setFabTaskOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("focusflow_onboarded"));
 
   const { user } = useAuth();
   const { data: profile } = useProfile();
