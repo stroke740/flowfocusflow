@@ -15,21 +15,28 @@ interface TaskCardProps {
   completionCount?: number;
 }
 
+const PRIORITY_RING: Record<string, string> = {
+  p1: "border-destructive text-destructive",
+  p2: "border-warning text-warning",
+  p3: "border-primary/40 text-primary/40",
+  p4: "border-muted-foreground/25 text-muted-foreground/25",
+};
+
 function formatDueDate(dateStr: string | null) {
   if (!dateStr) return null;
   const date = new Date(dateStr);
-  if (isToday(date)) return { text: "Today", overdue: false };
-  if (isTomorrow(date)) return { text: "Tomorrow", overdue: false };
-  if (isPast(date)) return { text: "Overdue", overdue: true };
-  return { text: format(date, "MMM d"), overdue: false };
+  if (isToday(date)) return { text: "Today", color: "text-primary", bg: "" };
+  if (isTomorrow(date)) return { text: "Tomorrow", color: "text-accent-foreground", bg: "" };
+  if (isPast(date)) return { text: format(date, "MMM d"), color: "text-destructive", bg: "" };
+  return { text: format(date, "MMM d"), color: "text-muted-foreground", bg: "" };
 }
 
 function fireConfetti() {
   confetti({
-    particleCount: 80,
-    spread: 60,
+    particleCount: 60,
+    spread: 50,
     origin: { y: 0.7 },
-    colors: ["#4F46E5", "#06B6D4", "#10B981", "#F59E0B", "#F43F5E"],
+    colors: ["#db4c3f", "#ff9933", "#4073ff", "#058527", "#808080"],
     disableForReducedMotion: true,
   });
 }
@@ -38,10 +45,8 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
   const { completeTask, uncompleteTask, deleteTask } = useTaskMutations();
   const { toast } = useToast();
   const [completing, setCompleting] = useState(false);
-  const [struck, setStruck] = useState(false);
   const isCompleted = task.status === "completed";
   const due = formatDueDate(task.due_date);
-  const prio = PRIORITY_CONFIG[task.priority];
   const subtasksDone = task.subtasks?.filter((s) => s.status === "completed").length || 0;
   const subtasksTotal = task.subtasks?.length || 0;
   const hasRecurrence = !!(task as any).recurrence_rule;
@@ -52,72 +57,52 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
       return;
     }
     setCompleting(true);
-    setTimeout(() => setStruck(true), 150);
     setTimeout(async () => {
       await completeTask.mutateAsync(task.id);
       setCompleting(false);
-      setStruck(false);
       if ((completionCount + 1) % 5 === 0) {
         fireConfetti();
-        toast({ title: "🎉 Milestone!", description: `You've completed ${completionCount + 1} tasks!` });
+        toast({ title: "🎉 Nice streak!", description: `${completionCount + 1} tasks completed!` });
       }
-    }, 650);
+    }, 400);
   };
 
   const handleDelete = async () => {
     deleteTask.mutate(task.id);
-    toast({
-      title: subtasksTotal > 0 ? `Deleted task and ${subtasksTotal} subtask(s)` : "Task deleted",
-      description: "This action cannot be undone.",
-    });
+    toast({ title: "Task deleted" });
   };
 
   const handleSkipOccurrence = async () => {
     await completeTask.mutateAsync(task.id);
-    toast({ title: "Occurrence skipped", description: "Next occurrence has been created." });
+    toast({ title: "Occurrence skipped" });
   };
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{
-        opacity: struck ? 0.3 : isCompleted ? 0.5 : 1,
-        y: struck ? -4 : 0,
-        scale: struck ? 0.98 : 1,
-      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: completing ? 0.4 : isCompleted ? 0.5 : 1 }}
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-      transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       className={cn(
-        "group flex items-start gap-3.5 px-4 py-3.5 rounded-2xl bg-card shadow-card transition-all",
-        "active:scale-[0.98] active:shadow-card-hover",
-        task.priority !== "p4" && "border-l-[3px]",
-        due?.overdue && !isCompleted && "bg-destructive/[0.02]",
-        isCompleted && "opacity-50"
+        "group flex items-start gap-3 px-1 py-3 task-separator cursor-pointer",
+        "hover:bg-muted/40 -mx-1 rounded-lg transition-colors duration-100"
       )}
-      style={{
-        borderLeftColor: task.priority !== "p4" ? prio.color : undefined,
-      }}
       onClick={() => onEdit(task)}
     >
-      {/* Checkbox */}
+      {/* Todoist-style checkbox */}
       <button
         onClick={(e) => { e.stopPropagation(); handleComplete(); }}
         className={cn(
-          "w-[22px] h-[22px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 mt-[1px] transition-all duration-150",
+          "w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 mt-0.5 transition-all duration-150",
           isCompleted || completing
-            ? "bg-primary border-primary scale-100"
-            : "border-muted-foreground/20 hover:border-primary/40 active:border-primary/60"
+            ? "bg-muted-foreground/40 border-muted-foreground/40"
+            : PRIORITY_RING[task.priority],
+          !isCompleted && !completing && "hover:bg-current/10"
         )}
       >
         {(isCompleted || completing) && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 500, damping: 25, duration: 0.15 }}
-          >
-            <Check size={11} className="text-primary-foreground" strokeWidth={3} />
-          </motion.div>
+          <Check size={10} className="text-background" strokeWidth={3} />
         )}
       </button>
 
@@ -125,36 +110,36 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
       <div className="flex-1 min-w-0">
         <p
           className={cn(
-            "text-[14px] font-medium leading-snug line-clamp-2 tracking-[-0.01em]",
-            (isCompleted || struck) && "line-through text-muted-foreground"
+            "text-[13px] leading-[1.4] font-normal",
+            isCompleted && "line-through text-muted-foreground"
           )}
-          style={{ transition: "all 200ms ease" }}
         >
           {task.title}
         </p>
 
-        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+        {task.description && !isCompleted && (
+          <p className="text-[12px] text-muted-foreground/60 line-clamp-1 mt-0.5">
+            {task.description}
+          </p>
+        )}
+
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
           {due && (
-            <span className={cn(
-              "inline-flex items-center gap-1 text-[11px] font-medium px-2 py-[3px] rounded-md",
-              due.overdue && !isCompleted
-                ? "bg-destructive/8 text-destructive"
-                : "bg-muted/80 text-muted-foreground"
-            )}>
+            <span className={cn("inline-flex items-center gap-1 text-[11px]", due.color)}>
               <Calendar size={10} />
               {due.text}
             </span>
           )}
 
           {hasRecurrence && (
-            <span className="inline-flex items-center gap-0.5 text-[11px] text-primary/60 bg-primary/5 px-1.5 py-[3px] rounded-md">
+            <span className="inline-flex items-center text-[11px] text-muted-foreground/50">
               <Repeat size={10} />
             </span>
           )}
 
           {task.project && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-[3px] rounded-md bg-muted/80 text-muted-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+              <span className="w-2 h-2 rounded-[3px] bg-primary/50 flex-shrink-0" />
               {task.project}
             </span>
           )}
@@ -162,47 +147,43 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
           {task.tags?.slice(0, 2).map((tag) => (
             <span
               key={tag.id}
-              className="text-[11px] font-medium px-2 py-[3px] rounded-md"
-              style={{ backgroundColor: tag.color + "12", color: tag.color }}
+              className="text-[11px] text-muted-foreground"
             >
-              {tag.name}
+              @{tag.name}
             </span>
           ))}
           {(task.tags?.length || 0) > 2 && (
-            <span className="text-[10px] text-muted-foreground/60">+{(task.tags?.length || 0) - 2}</span>
+            <span className="text-[10px] text-muted-foreground/40">+{(task.tags?.length || 0) - 2}</span>
           )}
 
           {subtasksTotal > 0 && (
-            <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-              <div className="w-10 h-1 rounded-full bg-muted overflow-hidden">
-                <div className="h-full bg-primary/70 rounded-full transition-all" style={{ width: `${(subtasksDone / subtasksTotal) * 100}%` }} />
-              </div>
-              <span className="tabular-nums">{subtasksDone}/{subtasksTotal}</span>
+            <span className="text-[11px] text-muted-foreground tabular-nums">
+              {subtasksDone}/{subtasksTotal}
             </span>
           )}
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex-shrink-0">
+      {/* Actions — only on hover/focus */}
+      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-100">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button onClick={(e) => e.stopPropagation()} className="p-1.5 -mr-1 rounded-xl active:bg-muted opacity-40 group-hover:opacity-70 transition-opacity">
-              <MoreHorizontal size={16} className="text-muted-foreground" />
+            <button onClick={(e) => e.stopPropagation()} className="p-1 rounded-md hover:bg-muted transition-colors">
+              <MoreHorizontal size={14} className="text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44 rounded-xl">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(task); }} className="rounded-lg">
-              <Pencil size={14} className="mr-2" /> Edit
+          <DropdownMenuContent align="end" className="w-40 rounded-lg">
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(task); }}>
+              <Pencil size={13} className="mr-2" /> Edit
             </DropdownMenuItem>
             {hasRecurrence && (
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSkipOccurrence(); }} className="rounded-lg">
-                <SkipForward size={14} className="mr-2" /> Skip this occurrence
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSkipOccurrence(); }}>
+                <SkipForward size={13} className="mr-2" /> Skip
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(); }} className="text-destructive rounded-lg">
-              <Trash2 size={14} className="mr-2" /> Delete
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(); }} className="text-destructive">
+              <Trash2 size={13} className="mr-2" /> Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

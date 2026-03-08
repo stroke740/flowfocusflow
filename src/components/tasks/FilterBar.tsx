@@ -18,17 +18,17 @@ interface FilterBarProps {
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "manual", label: "Manual" },
   { value: "priority", label: "Priority" },
-  { value: "due_asc", label: "Due Date ↑" },
-  { value: "due_desc", label: "Due Date ↓" },
-  { value: "created", label: "Created" },
-  { value: "alpha", label: "A → Z" },
+  { value: "due_asc", label: "Date ↑" },
+  { value: "due_desc", label: "Date ↓" },
+  { value: "created", label: "Added" },
+  { value: "alpha", label: "Name" },
 ];
 
 const DUE_OPTIONS = [
   { value: "today", label: "Today" },
-  { value: "this_week", label: "This Week" },
-  { value: "next_week", label: "Next Week" },
-  { value: "no_date", label: "No Date" },
+  { value: "this_week", label: "This week" },
+  { value: "next_week", label: "Next week" },
+  { value: "no_date", label: "No date" },
 ] as const;
 
 const FilterBar = ({ filters, onChange, tags, projects }: FilterBarProps) => {
@@ -61,68 +61,65 @@ const FilterBar = ({ filters, onChange, tags, projects }: FilterBarProps) => {
   };
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      {/* Filter popover */}
+    <div className="flex items-center gap-1.5 flex-wrap">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs gap-1.5">
-            <Filter size={13} />
+          <Button variant="ghost" size="sm" className="h-7 rounded-md text-[11px] gap-1 text-muted-foreground hover:text-foreground">
+            <Filter size={12} />
             Filter
             {activeCount > 0 && (
-              <Badge className="ml-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
+              <span className="ml-0.5 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
                 {activeCount}
-              </Badge>
+              </span>
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="start" className="w-72 p-0">
+        <PopoverContent align="start" className="w-64 p-0">
           <div className="p-3">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold">Filters</span>
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[12px] font-semibold">Filters</span>
               {activeCount > 0 && (
                 <button
                   onClick={() => onChange(DEFAULT_FILTERS)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
+                  className="text-[11px] text-primary hover:underline"
                 >
-                  Clear all
+                  Reset
                 </button>
               )}
             </div>
 
-            {/* Priority */}
-            <div className="mb-3">
-              <span className="text-xs text-muted-foreground mb-1.5 block">Priority</span>
-              <div className="flex gap-1.5">
+            <div className="mb-2.5">
+              <span className="text-[11px] text-muted-foreground mb-1 block">Priority</span>
+              <div className="flex gap-1">
                 {(["p1", "p2", "p3", "p4"] as TaskPriority[]).map((p) => (
                   <button
                     key={p}
                     onClick={() => togglePriority(p)}
                     className={cn(
-                      "flex-1 h-7 rounded-lg text-[11px] font-medium border transition-colors",
+                      "flex-1 h-6 rounded-md text-[10px] font-medium transition-colors",
                       filters.priorities.includes(p)
-                        ? "bg-primary/10 border-primary text-primary"
-                        : "border-border text-muted-foreground hover:bg-muted"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
                     )}
                   >
-                    {PRIORITY_CONFIG[p].emoji || "—"} {p.toUpperCase()}
+                    P{p[1]}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Due date */}
-            <div className="mb-3">
-              <span className="text-xs text-muted-foreground mb-1.5 block">Due Date</span>
-              <div className="flex flex-wrap gap-1.5">
+            <div className="mb-2.5">
+              <span className="text-[11px] text-muted-foreground mb-1 block">Due date</span>
+              <div className="flex flex-wrap gap-1">
                 {DUE_OPTIONS.map((d) => (
                   <button
                     key={d.value}
                     onClick={() => onChange({ ...filters, dueDateRange: filters.dueDateRange === d.value ? null : d.value })}
                     className={cn(
-                      "h-7 px-2.5 rounded-lg text-[11px] font-medium border transition-colors",
+                      "h-6 px-2 rounded-md text-[10px] font-medium transition-colors",
                       filters.dueDateRange === d.value
-                        ? "bg-primary/10 border-primary text-primary"
-                        : "border-border text-muted-foreground hover:bg-muted"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
                     )}
                   >
                     {d.label}
@@ -131,51 +128,49 @@ const FilterBar = ({ filters, onChange, tags, projects }: FilterBarProps) => {
               </div>
             </div>
 
-            {/* Tags */}
             {tags.length > 0 && (
-              <div className="mb-3">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs text-muted-foreground">Tags</span>
+              <div className="mb-2.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] text-muted-foreground">Labels</span>
                   <button
                     onClick={() => onChange({ ...filters, tagLogic: filters.tagLogic === "and" ? "or" : "and" })}
-                    className="text-[10px] text-primary font-medium"
+                    className="text-[9px] text-primary font-bold uppercase"
                   >
-                    {filters.tagLogic.toUpperCase()}
+                    {filters.tagLogic}
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1">
                   {tags.map((tag) => (
                     <button
                       key={tag.id}
                       onClick={() => toggleTag(tag.id)}
                       className={cn(
-                        "h-6 px-2 rounded-md text-[11px] font-medium border transition-colors",
+                        "h-5 px-1.5 rounded text-[10px] font-medium transition-colors",
                         filters.tagIds.includes(tag.id)
-                          ? "bg-primary/10 border-primary text-primary"
-                          : "border-border text-muted-foreground hover:bg-muted"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
                       )}
                     >
-                      {tag.name}
+                      @{tag.name}
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Projects */}
             {projects.length > 0 && (
               <div>
-                <span className="text-xs text-muted-foreground mb-1.5 block">Projects</span>
-                <div className="flex flex-wrap gap-1.5">
+                <span className="text-[11px] text-muted-foreground mb-1 block">Projects</span>
+                <div className="flex flex-wrap gap-1">
                   {projects.map((p) => (
                     <button
                       key={p}
                       onClick={() => toggleProject(p)}
                       className={cn(
-                        "h-6 px-2 rounded-md text-[11px] font-medium border transition-colors",
+                        "h-5 px-1.5 rounded text-[10px] font-medium transition-colors",
                         filters.projects.includes(p)
-                          ? "bg-primary/10 border-primary text-primary"
-                          : "border-border text-muted-foreground hover:bg-muted"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
                       )}
                     >
                       {p}
@@ -188,25 +183,23 @@ const FilterBar = ({ filters, onChange, tags, projects }: FilterBarProps) => {
         </PopoverContent>
       </Popover>
 
-      {/* Sort dropdown */}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="h-8 rounded-lg text-xs gap-1.5">
-            <SortAsc size={13} />
+          <Button variant="ghost" size="sm" className="h-7 rounded-md text-[11px] gap-1 text-muted-foreground hover:text-foreground">
+            <SortAsc size={12} />
             {SORT_OPTIONS.find((s) => s.value === filters.sort)?.label || "Sort"}
-            <ChevronDown size={11} />
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="start" className="w-40 p-1">
+        <PopoverContent align="start" className="w-36 p-1">
           {SORT_OPTIONS.map((s) => (
             <button
               key={s.value}
               onClick={() => onChange({ ...filters, sort: s.value })}
               className={cn(
-                "w-full text-left px-3 py-1.5 rounded-md text-xs transition-colors",
+                "w-full text-left px-2.5 py-1.5 rounded-md text-[11px] transition-colors",
                 filters.sort === s.value
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:bg-muted"
+                  ? "bg-muted text-foreground font-medium"
+                  : "text-muted-foreground hover:bg-muted/60"
               )}
             >
               {s.label}
@@ -215,21 +208,18 @@ const FilterBar = ({ filters, onChange, tags, projects }: FilterBarProps) => {
         </PopoverContent>
       </Popover>
 
-      {/* Active filter chips */}
       {activeCount > 0 && (
         <>
-          <Separator orientation="vertical" className="h-5" />
+          <Separator orientation="vertical" className="h-4" />
           {filters.priorities.map((p) => (
-            <Badge key={p} variant="secondary" className="text-[10px] gap-1 cursor-pointer" onClick={() => togglePriority(p)}>
-              {PRIORITY_CONFIG[p].emoji} {p.toUpperCase()}
-              <X size={10} />
-            </Badge>
+            <button key={p} onClick={() => togglePriority(p)} className="inline-flex items-center gap-0.5 h-5 px-1.5 rounded bg-muted text-[10px] font-medium text-muted-foreground hover:bg-muted/80">
+              P{p[1]} <X size={8} />
+            </button>
           ))}
           {filters.dueDateRange && (
-            <Badge variant="secondary" className="text-[10px] gap-1 cursor-pointer" onClick={() => onChange({ ...filters, dueDateRange: null })}>
-              {DUE_OPTIONS.find((d) => d.value === filters.dueDateRange)?.label}
-              <X size={10} />
-            </Badge>
+            <button onClick={() => onChange({ ...filters, dueDateRange: null })} className="inline-flex items-center gap-0.5 h-5 px-1.5 rounded bg-muted text-[10px] font-medium text-muted-foreground hover:bg-muted/80">
+              {DUE_OPTIONS.find((d) => d.value === filters.dueDateRange)?.label} <X size={8} />
+            </button>
           )}
         </>
       )}
