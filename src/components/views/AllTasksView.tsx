@@ -1,5 +1,5 @@
-import { useMemo, ReactNode } from "react";
-import { List, Plus, Inbox } from "lucide-react";
+import { useMemo, ReactNode, forwardRef } from "react";
+import { List } from "lucide-react";
 import { Task } from "@/types/task";
 import TaskList from "../tasks/TaskList";
 
@@ -12,14 +12,14 @@ interface AllTasksViewProps {
   emptyDescription?: string;
 }
 
-const AllTasksView = ({
+const AllTasksView = forwardRef<HTMLDivElement, AllTasksViewProps>(({
   tasks,
   onEditTask,
   groupByProject = false,
   emptyIcon,
   emptyTitle,
   emptyDescription,
-}: AllTasksViewProps) => {
+}, ref) => {
   const grouped = useMemo(() => {
     if (!groupByProject) return null;
     const map: Record<string, Task[]> = { "No Project": [] };
@@ -33,9 +33,9 @@ const AllTasksView = ({
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-20">
-        {emptyIcon || <List size={44} className="mx-auto mb-3 text-muted-foreground/20" />}
-        <h3 className="text-base font-semibold mb-1 mt-3">{emptyTitle || "No tasks found"}</h3>
+      <div ref={ref} className="text-center py-24">
+        {emptyIcon || <List size={48} className="mx-auto mb-4 text-muted-foreground/15" />}
+        <h3 className="text-base font-bold mb-1 mt-3">{emptyTitle || "No tasks found"}</h3>
         <p className="text-muted-foreground text-sm">{emptyDescription || "Try adjusting your filters or add a new task."}</p>
       </div>
     );
@@ -43,11 +43,11 @@ const AllTasksView = ({
 
   if (grouped) {
     return (
-      <div className="space-y-6">
+      <div ref={ref} className="space-y-6">
         {grouped.map(([project, projectTasks]) => (
           <div key={project}>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-              {project} <span className="text-muted-foreground/60">({projectTasks.length})</span>
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+              {project} <span className="text-muted-foreground/40">({projectTasks.length})</span>
             </h3>
             <TaskList tasks={projectTasks} onEditTask={onEditTask} />
           </div>
@@ -56,7 +56,9 @@ const AllTasksView = ({
     );
   }
 
-  return <TaskList tasks={tasks} onEditTask={onEditTask} />;
-};
+  return <div ref={ref}><TaskList tasks={tasks} onEditTask={onEditTask} /></div>;
+});
+
+AllTasksView.displayName = "AllTasksView";
 
 export default AllTasksView;

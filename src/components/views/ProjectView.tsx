@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Plus, Settings, Trash2 } from "lucide-react";
+import { Settings, Trash2, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Project } from "@/hooks/use-projects";
 import { Task, FilterState } from "@/types/task";
 import { useFilteredTasks } from "@/hooks/use-filtered-tasks";
@@ -37,12 +38,12 @@ const ProjectView = ({
   const total = projectActive.length + projectCompleted.length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Project header */}
       <div className="flex items-center gap-3">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-          style={{ backgroundColor: project.color + "20" }}
+          className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
+          style={{ backgroundColor: project.color + "18" }}
         >
           {project.icon}
         </div>
@@ -54,22 +55,22 @@ const ProjectView = ({
               total={total}
               color={project.color}
               showLabel
-              className="mt-1"
+              className="mt-1.5"
             />
           )}
         </div>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEditProject}>
-          <Settings size={15} />
+        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={onEditProject}>
+          <Settings size={16} />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={onDeleteProject}>
-          <Trash2 size={15} />
+        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-destructive" onClick={onDeleteProject}>
+          <Trash2 size={16} />
         </Button>
       </div>
 
       {total === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground text-sm mb-2">No tasks yet</p>
-          <p className="text-xs text-muted-foreground">Add your first task to get started</p>
+        <div className="text-center py-16">
+          <p className="text-muted-foreground text-sm mb-1 font-medium">No tasks yet</p>
+          <p className="text-xs text-muted-foreground/60">Tap + to add your first task</p>
         </div>
       )}
 
@@ -80,9 +81,10 @@ const ProjectView = ({
       {projectCompleted.length > 0 && (
         <button
           onClick={() => setShowCompleted(!showCompleted)}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-2 text-xs text-muted-foreground active:text-foreground transition-colors py-1"
         >
-          {showCompleted ? "Hide" : "Show"} {projectCompleted.length} completed
+          <ChevronDown size={14} className={cn("transition-transform duration-200", showCompleted && "rotate-180")} />
+          <span className="font-medium">{projectCompleted.length} completed</span>
         </button>
       )}
       {showCompleted && projectCompleted.length > 0 && (

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, forwardRef } from "react";
 import {
   Inbox, CalendarDays, CheckCircle2,
   Calendar, Plus, Search, FolderOpen, User,
@@ -42,13 +42,6 @@ const mobileTabs: { id: ViewType | "search" | "projects"; label: string; icon: t
   { id: "search", label: "Search", icon: Search },
   { id: "projects", label: "Projects", icon: FolderOpen },
   { id: "settings", label: "Settings", icon: User },
-];
-
-const builtInViews: { id: ViewType; label: string; icon: typeof Inbox }[] = [
-  { id: "inbox", label: "Inbox", icon: Inbox },
-  { id: "today", label: "Today", icon: CalendarDays },
-  { id: "upcoming", label: "Upcoming", icon: Calendar },
-  { id: "completed", label: "Completed", icon: CheckCircle2 },
 ];
 
 const Dashboard = () => {
@@ -165,34 +158,35 @@ const Dashboard = () => {
   const currentTitle =
     view === "settings" ? ""
     : view === "project" && selectedProject ? selectedProject.name
-    : builtInViews.find((v) => v.id === view)?.label || "Tasks";
+    : mobileTabs.find((v) => v.id === view)?.label
+      || (view === "upcoming" ? "Upcoming" : view === "completed" ? "Completed" : view === "analytics" ? "Analytics" : "Tasks");
 
   const showAddTask = !["completed", "settings", "analytics"].includes(view);
 
   return (
-    <div className="h-screen flex flex-col bg-background overflow-hidden">
+    <div className="h-screen flex flex-col bg-background overflow-hidden safe-area-top">
       {/* ===== HEADER ===== */}
       {view !== "settings" && (
-        <header className="h-12 flex items-center gap-2 px-4 border-b border-border flex-shrink-0">
+        <header className="h-14 flex items-center gap-2 px-4 border-b border-border/60 flex-shrink-0 bg-card/80 backdrop-blur-md">
           {view === "project" && selectedProject && (
-            <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: selectedProject.color }} />
+            <span className="w-3.5 h-3.5 rounded-full flex-shrink-0 shadow-sm" style={{ backgroundColor: selectedProject.color }} />
           )}
-          <h1 className="text-base font-semibold flex-1 truncate">{currentTitle}</h1>
+          <h1 className="text-lg font-bold flex-1 truncate">{currentTitle}</h1>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             {overdueCount > 0 && (
               <button
                 onClick={() => setOverdueReviewOpen(true)}
-                className="px-2 py-1 rounded-lg bg-destructive/10 text-destructive text-xs font-medium"
+                className="px-2.5 py-1 rounded-full bg-destructive/10 text-destructive text-xs font-semibold"
               >
                 {overdueCount} overdue
               </button>
             )}
             <button
               onClick={() => { setFocusTask(null); setFocusOpen(true); }}
-              className="p-2 rounded-lg text-primary"
+              className="p-2.5 rounded-xl text-muted-foreground active:bg-muted transition-colors"
             >
-              <Timer size={18} />
+              <Timer size={20} />
             </button>
             <NotificationCenter onNavigateToTask={handleNavigateToTask} />
           </div>
@@ -200,8 +194,8 @@ const Dashboard = () => {
       )}
 
       {/* ===== CONTENT ===== */}
-      <div className="flex-1 overflow-y-auto pb-24">
-        <div className="px-4 py-4">
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-4 py-4 pb-28">
           {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && (
             <div className="mb-3">
               <FilterBar filters={filters} onChange={setFilters} tags={tags} projects={projectNames} />
@@ -212,18 +206,18 @@ const Dashboard = () => {
             <SettingsPage />
           ) : isLoading && view !== "project" ? (
             <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-muted/50 rounded-xl animate-pulse" />
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-16 rounded-xl animate-shimmer" />
               ))}
             </div>
           ) : (
             <AnimatePresence mode="wait">
               <motion.div
                 key={view + (selectedProjectId || "")}
-                initial={{ opacity: 0, y: 6 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               >
                 {view === "today" && (
                   <TodayView tasks={filteredTasks} completedToday={completedToday} onEditTask={handleSelectTask} />
@@ -232,8 +226,8 @@ const Dashboard = () => {
                   <AllTasksView
                     tasks={filteredTasks}
                     onEditTask={handleSelectTask}
-                    emptyIcon={<Inbox size={44} className="text-muted-foreground/20" />}
-                    emptyTitle="Zero tasks. You're on top of everything."
+                    emptyIcon={<Inbox size={48} className="text-muted-foreground/15" />}
+                    emptyTitle="Inbox zero 🎯"
                     emptyDescription="Tasks without a project land here."
                   />
                 )}
@@ -260,8 +254,9 @@ const Dashboard = () => {
 
       {/* ===== TASK DETAIL — Bottom Sheet ===== */}
       <Sheet open={!!editingTask} onOpenChange={(open) => { if (!open) setEditingTask(null); }}>
-        <SheetContent side="bottom" className="h-[90vh] rounded-t-2xl p-0 overflow-hidden">
-          <div className="h-full overflow-y-auto">
+        <SheetContent side="bottom" className="h-[92vh] rounded-t-3xl p-0 overflow-hidden">
+          <div className="w-10 h-1 rounded-full bg-muted-foreground/20 mx-auto mt-2 mb-1" />
+          <div className="h-[calc(100%-16px)] overflow-y-auto">
             {editingTask && (
               <TaskDetailPanel task={editingTask} onClose={() => setEditingTask(null)} projects={projects} tags={tags} />
             )}
@@ -274,11 +269,11 @@ const Dashboard = () => {
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 22, delay: 0.15 }}
+          transition={{ type: "spring", stiffness: 400, damping: 22, delay: 0.2 }}
           onClick={() => setMobileAddOpen(true)}
-          className="fixed right-4 bottom-[calc(4rem+env(safe-area-inset-bottom)+8px)] z-30 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-90 transition-transform"
+          className="fixed right-5 bottom-[calc(4.5rem+env(safe-area-inset-bottom)+8px)] z-30 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-glow flex items-center justify-center active:scale-90 transition-transform"
         >
-          <Plus size={24} />
+          <Plus size={24} strokeWidth={2.5} />
         </motion.button>
       )}
 
@@ -286,14 +281,18 @@ const Dashboard = () => {
       <AddTaskInput asSheet sheetOpen={mobileAddOpen} onSheetOpenChange={setMobileAddOpen} />
 
       {/* ===== BOTTOM TAB BAR ===== */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border z-30 pb-[env(safe-area-inset-bottom)]">
-        <div className="flex items-center justify-around px-1 py-1.5">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border/50 z-30 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around px-2 py-2">
           {mobileTabs.map((tab) => {
             const isActive =
               tab.id === "search" ? false
               : tab.id === "projects" ? (view === "project" || mobileProjectsOpen)
               : tab.id === "settings" ? view === "settings"
               : view === tab.id && !selectedProjectId;
+
+            const badge = tab.id === "inbox" && inboxCount > 0 ? inboxCount
+              : tab.id === "today" && todayTasks.length > 0 ? todayTasks.length
+              : null;
 
             return (
               <button
@@ -310,12 +309,26 @@ const Dashboard = () => {
                   }
                 }}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-[52px]",
+                  "relative flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[52px]",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}
               >
-                <tab.icon size={20} />
-                <span className="text-[10px] font-medium">{tab.label}</span>
+                <div className="relative">
+                  <tab.icon size={22} strokeWidth={isActive ? 2.2 : 1.8} />
+                  {badge && (
+                    <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
+                      {badge > 99 ? "99+" : badge}
+                    </span>
+                  )}
+                </div>
+                <span className={cn("text-[10px]", isActive ? "font-semibold" : "font-medium")}>{tab.label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="tab-indicator"
+                    className="absolute -bottom-1 w-5 h-0.5 rounded-full bg-primary"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  />
+                )}
               </button>
             );
           })}
@@ -324,9 +337,10 @@ const Dashboard = () => {
 
       {/* Projects sheet */}
       <Sheet open={mobileProjectsOpen} onOpenChange={setMobileProjectsOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[70vh]">
+        <SheetContent side="bottom" className="rounded-t-3xl max-h-[75vh]">
+          <div className="w-10 h-1 rounded-full bg-muted-foreground/20 mx-auto mt-1 mb-4" />
           <SheetHeader>
-            <SheetTitle className="text-left">Projects</SheetTitle>
+            <SheetTitle className="text-left text-lg">Projects</SheetTitle>
           </SheetHeader>
           <div className="mt-4 space-y-1">
             {projects.map((project) => {
@@ -336,45 +350,49 @@ const Dashboard = () => {
                 <button
                   key={project.id}
                   onClick={() => switchView("project", project.id)}
-                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-muted transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-3.5 rounded-2xl hover:bg-muted/80 active:bg-muted transition-colors"
                 >
-                  <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: project.color }} />
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-sm flex-shrink-0"
+                    style={{ backgroundColor: project.color + "18" }}
+                  >
+                    {project.icon}
+                  </div>
                   <span className="flex-1 text-left text-sm font-medium">{project.name}</span>
-                  {activeCount > 0 && <span className="text-xs text-muted-foreground">{activeCount} tasks</span>}
+                  {activeCount > 0 && (
+                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      {activeCount}
+                    </span>
+                  )}
                 </button>
               );
             })}
             <button
               onClick={() => { setMobileProjectsOpen(false); setEditingProject(null); setProjectFormOpen(true); }}
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-primary hover:bg-muted transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-3.5 rounded-2xl text-primary hover:bg-primary/5 active:bg-primary/10 transition-colors"
             >
-              <Plus size={16} />
-              <span className="text-sm font-medium">New Project</span>
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Plus size={18} />
+              </div>
+              <span className="text-sm font-semibold">New Project</span>
             </button>
 
             {/* Quick links */}
-            <div className="pt-3 border-t border-border mt-3 space-y-1">
-              <button
-                onClick={() => { setMobileProjectsOpen(false); switchView("upcoming"); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-muted transition-colors"
-              >
-                <Calendar size={16} />
-                <span className="text-sm">Upcoming</span>
-              </button>
-              <button
-                onClick={() => { setMobileProjectsOpen(false); switchView("completed"); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-muted transition-colors"
-              >
-                <CheckCircle2 size={16} />
-                <span className="text-sm">Completed</span>
-              </button>
-              <button
-                onClick={() => { setMobileProjectsOpen(false); switchView("analytics" as any); }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:bg-muted transition-colors"
-              >
-                <BarChart3 size={16} />
-                <span className="text-sm">Analytics</span>
-              </button>
+            <div className="pt-4 border-t border-border/50 mt-4 space-y-0.5">
+              {[
+                { icon: Calendar, label: "Upcoming", action: () => switchView("upcoming") },
+                { icon: CheckCircle2, label: "Completed", action: () => switchView("completed") },
+                { icon: BarChart3, label: "Analytics", action: () => switchView("analytics" as any) },
+              ].map(({ icon: Icon, label, action }) => (
+                <button
+                  key={label}
+                  onClick={() => { setMobileProjectsOpen(false); action(); }}
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-2xl text-muted-foreground hover:bg-muted/80 active:bg-muted transition-colors"
+                >
+                  <Icon size={18} />
+                  <span className="text-sm font-medium">{label}</span>
+                </button>
+              ))}
             </div>
           </div>
         </SheetContent>
