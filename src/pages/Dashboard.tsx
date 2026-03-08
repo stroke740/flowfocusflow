@@ -81,6 +81,19 @@ const Dashboard = () => {
   const { data: profile } = useProfile();
   const { data: prefs } = usePreferences();
   const updatePrefs = useUpdatePreferences();
+  const qc = useQueryClient();
+  const { requestPermission } = usePushNotifications();
+
+  // Request notification permission on first load
+  useEffect(() => {
+    if (prefs?.push_notifications) {
+      requestPermission();
+    }
+  }, [prefs?.push_notifications, requestPermission]);
+
+  const handleRefresh = useCallback(async () => {
+    await qc.invalidateQueries({ queryKey: ["tasks"] });
+  }, [qc]);
 
   const isDark = prefs?.theme === "dark" || (prefs?.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
