@@ -55,7 +55,7 @@ function getGreeting() {
 }
 
 const Dashboard = () => {
-  const [view, setView] = useState<ViewType | "project">("today");
+  const [view, setView] = useState<ViewType | "project">("inbox");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
