@@ -205,8 +205,13 @@ const Dashboard = () => {
               <div className="flex items-center justify-between mb-1">
                 <div>
                   <h1 className="text-[22px] font-bold tracking-tight leading-tight">
-                    {currentTitle}
+                    {view === "inbox" ? getGreeting() : currentTitle}
                   </h1>
+                  {view === "inbox" && (
+                    <p className="text-[13px] text-muted-foreground mt-0.5">
+                      {format(new Date(), "EEEE, MMM d")}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   <button
@@ -256,6 +261,7 @@ const Dashboard = () => {
                 <DailyProgressRing
                   completed={completedToday.length}
                   total={completedToday.length + todayTasks.length}
+                  completedTasks={completedTasks}
                 />
               )}
             </div>
