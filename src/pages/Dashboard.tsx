@@ -428,7 +428,7 @@ const Dashboard = () => {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 20, scale: 0.8 }}
                   transition={{ delay: 0 }}
-                  onClick={() => { setMobileAddOpen(false); }}
+                  onClick={() => { setMobileAddOpen(false); setFabTaskOpen(true); }}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-card border border-border shadow-lg text-sm font-medium"
                 >
                   <CheckCircle2 size={16} className="text-primary" />
