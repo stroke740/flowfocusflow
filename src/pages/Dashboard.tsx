@@ -71,6 +71,7 @@ const Dashboard = () => {
   const [mobileAddOpen, setMobileAddOpen] = useState(false);
   const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
   const [homeProjectFilter, setHomeProjectFilter] = useState<string | null>(null);
+  const [fabTaskOpen, setFabTaskOpen] = useState(false);
 
   const { user } = useAuth();
   const { data: profile } = useProfile();
@@ -391,21 +392,73 @@ const Dashboard = () => {
         </SheetContent>
       </Sheet>
 
-      {/* FAB */}
+      {/* FAB with expandable actions */}
       {showAddTask && (
-        <motion.button
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 22, delay: 0.15 }}
-          onClick={() => setMobileAddOpen(true)}
-          className="fixed right-5 bottom-[calc(4rem+env(safe-area-inset-bottom)+12px)] z-30 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-glow flex items-center justify-center active:scale-90 transition-transform"
-        >
-          <Plus size={22} strokeWidth={2.5} />
-        </motion.button>
+        <>
+          {/* Backdrop */}
+          <AnimatePresence>
+            {mobileAddOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-background/60 backdrop-blur-sm z-30"
+                onClick={() => setMobileAddOpen(false)}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Expanded action buttons */}
+          <AnimatePresence>
+            {mobileAddOpen && (
+              <div className="fixed right-5 bottom-[calc(4rem+env(safe-area-inset-bottom)+80px)] z-40 flex flex-col items-end gap-3">
+                <motion.button
+                  initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.8 }}
+                  transition={{ delay: 0.05 }}
+                  onClick={() => { setMobileAddOpen(false); setFocusTask(null); setFocusOpen(true); }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-card border border-border shadow-lg text-sm font-medium"
+                >
+                  <Timer size={16} className="text-warning" />
+                  Focus Timer
+                </motion.button>
+                <motion.button
+                  initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.8 }}
+                  transition={{ delay: 0 }}
+                  onClick={() => { setMobileAddOpen(false); setFabTaskOpen(true); }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-card border border-border shadow-lg text-sm font-medium"
+                >
+                  <CheckCircle2 size={16} className="text-primary" />
+                  Task
+                </motion.button>
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* FAB */}
+          <motion.button
+            initial={{ scale: 0 }}
+            animate={{ scale: 1, rotate: mobileAddOpen ? 45 : 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 22, delay: mobileAddOpen ? 0 : 0.15 }}
+            onClick={() => {
+              if (mobileAddOpen) {
+                setMobileAddOpen(false);
+              } else {
+                setMobileAddOpen(true);
+              }
+            }}
+            className="fixed right-5 bottom-[calc(4rem+env(safe-area-inset-bottom)+12px)] z-40 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-glow flex items-center justify-center active:scale-90 transition-transform"
+          >
+            <Plus size={22} strokeWidth={2.5} />
+          </motion.button>
+        </>
       )}
 
-      {/* Add task sheet */}
-      <AddTaskInput asSheet sheetOpen={mobileAddOpen} onSheetOpenChange={setMobileAddOpen} />
+      {/* Add task sheet — triggered from expanded FAB "Task" button */}
+      <AddTaskInput asSheet sheetOpen={fabTaskOpen} onSheetOpenChange={setFabTaskOpen} />
 
       {/* BOTTOM TAB BAR */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border/60 z-30 pb-[env(safe-area-inset-bottom)]">
