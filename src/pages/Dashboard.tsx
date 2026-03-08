@@ -273,7 +273,7 @@ const Dashboard = () => {
           onClick={() => setMobileAddOpen(true)}
           className="fixed right-5 bottom-[calc(4.5rem+env(safe-area-inset-bottom)+8px)] z-30 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-glow flex items-center justify-center active:scale-90 transition-transform"
         >
-          <Plus size={24} strokeWidth={2.5} />
+          <Plus size={22} strokeWidth={2.5} />
         </motion.button>
       )}
 
