@@ -70,6 +70,7 @@ const Dashboard = () => {
   const [focusTask, setFocusTask] = useState<Task | null>(null);
   const [mobileAddOpen, setMobileAddOpen] = useState(false);
   const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
+  const [homeProjectFilter, setHomeProjectFilter] = useState<string | null>(null);
 
   const { user } = useAuth();
   const { data: profile } = useProfile();
@@ -121,7 +122,10 @@ const Dashboard = () => {
 
   const baseTasks = view === "completed" ? completedTasks
     : view === "today" ? todayTasks
-    : view === "inbox" ? activeTasks.filter((t) => !t.project_id)
+    : view === "inbox" ? (homeProjectFilter
+        ? activeTasks.filter((t) => t.project_id === homeProjectFilter)
+        : activeTasks
+      )
     : activeTasks;
   const filteredTasks = useFilteredTasks(baseTasks, filters);
   const isLoading = view === "completed" ? loadingCompleted : loadingActive;
@@ -262,6 +266,10 @@ const Dashboard = () => {
                   completed={completedToday.length}
                   total={completedToday.length + todayTasks.length}
                   completedTasks={completedTasks}
+                  projects={projects}
+                  activeProjectFilter={homeProjectFilter}
+                  onProjectFilter={setHomeProjectFilter}
+                  taskCount={activeTasks.length}
                 />
               )}
             </div>
