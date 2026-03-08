@@ -47,6 +47,7 @@ const mobileTabs: { id: ViewType | "search" | "projects"; label: string; icon: t
 const Dashboard = () => {
   const [view, setView] = useState<ViewType | "project">("today");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [slideDirection, setSlideDirection] = useState(0);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
@@ -148,7 +149,11 @@ const Dashboard = () => {
     }
   };
 
+  const viewOrder: Record<string, number> = { inbox: 0, today: 1, upcoming: 2, all: 3, completed: 4, project: 5, analytics: 6, settings: 7 };
   const switchView = (v: ViewType | "project", projectId?: string) => {
+    const oldIdx = viewOrder[view] ?? 0;
+    const newIdx = viewOrder[v] ?? 0;
+    setSlideDirection(newIdx > oldIdx ? 1 : newIdx < oldIdx ? -1 : 0);
     setView(v);
     setSelectedProjectId(projectId || null);
     setMobileProjectsOpen(false);
@@ -214,10 +219,10 @@ const Dashboard = () => {
             <AnimatePresence mode="wait">
               <motion.div
                 key={view + (selectedProjectId || "")}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                initial={{ opacity: 0, x: slideDirection * 60 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: slideDirection * -60 }}
+                transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
               >
                 {view === "today" && (
                   <TodayView tasks={filteredTasks} completedToday={completedToday} onEditTask={handleSelectTask} />
