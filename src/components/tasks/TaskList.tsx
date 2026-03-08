@@ -22,6 +22,7 @@ import SwipeableTaskWrapper from "./SwipeableTaskWrapper";
 import { useTaskMutations } from "@/hooks/use-tasks";
 import { useToast } from "@/hooks/use-toast";
 import { showUndoToast } from "@/components/tasks/UndoToast";
+import { cn } from "@/lib/utils";
 
 interface TaskListProps {
   tasks: Task[];
