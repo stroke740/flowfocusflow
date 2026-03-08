@@ -70,6 +70,8 @@ const Dashboard = () => {
   const [focusTask, setFocusTask] = useState<Task | null>(null);
   const [mobileAddOpen, setMobileAddOpen] = useState(false);
   const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
+  const [homeProjectFilter, setHomeProjectFilter] = useState<string | null>(null);
+  const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
 
   const { user } = useAuth();
   const { data: profile } = useProfile();
