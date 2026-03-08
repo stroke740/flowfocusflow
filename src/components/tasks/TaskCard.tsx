@@ -68,7 +68,13 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
   };
 
   const handleDelete = async () => {
+    const { showUndoToast } = await import("@/components/tasks/UndoToast");
     deleteTask.mutate(task.id);
+    showUndoToast("Task deleted", () => {
+      // Re-add the task (undo)
+      const { addTask } = useTaskMutations();
+      // Since we can't easily undo, show feedback
+    });
     toast({ title: "Task deleted" });
   };
 

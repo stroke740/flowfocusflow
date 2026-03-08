@@ -1,10 +1,21 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
+import SplashScreen from "@/components/splash/SplashScreen";
+import TaskSkeleton from "@/components/tasks/TaskSkeleton";
+import UndoToast from "@/components/tasks/UndoToast";
+import CalendarView from "@/components/views/CalendarView";
+import MatrixView from "@/components/views/MatrixView";
+import DailyPlanning from "@/components/planning/DailyPlanning";
+import WeeklyReview from "@/components/planning/WeeklyReview";
+import TaskTemplates from "@/components/tasks/TaskTemplates";
+import HabitTracker from "@/components/habits/HabitTracker";
+import ExportDialog from "@/components/export/ExportDialog";
 import {
   Home, CalendarDays, CheckCircle2,
   Calendar, Plus, Search, FolderOpen, User,
-  BarChart3, Timer, Moon, Sun,
+  BarChart3, Timer, Moon, Sun, Grid3X3, Layout,
+  Sparkles, Download, BarChart2, BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ViewType, FilterState, DEFAULT_FILTERS, Task } from "@/types/task";
@@ -41,7 +52,9 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const mobileTabs: { id: ViewType | "search" | "projects"; label: string; icon: typeof Home }[] = [
+type ExtendedView = ViewType | "project" | "calendar" | "matrix";
+
+const mobileTabs: { id: string; label: string; icon: typeof Home }[] = [
   { id: "inbox", label: "Home", icon: Home },
   { id: "today", label: "Today", icon: CalendarDays },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
@@ -57,7 +70,8 @@ function getGreeting() {
 }
 
 const Dashboard = () => {
-  const [view, setView] = useState<ViewType | "project">("inbox");
+  const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem("focusflow_splash_done"));
+  const [view, setView] = useState<ExtendedView>("inbox");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
@@ -77,6 +91,14 @@ const Dashboard = () => {
   const [fabTaskOpen, setFabTaskOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("focusflow_onboarded"));
 
+  // New feature states
+  const [dailyPlanningOpen, setDailyPlanningOpen] = useState(false);
+  const [weeklyReviewOpen, setWeeklyReviewOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [habitsOpen, setHabitsOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
+
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const { data: prefs } = usePreferences();
@@ -84,7 +106,6 @@ const Dashboard = () => {
   const qc = useQueryClient();
   const { requestPermission } = usePushNotifications();
 
-  // Request notification permission on first load
   useEffect(() => {
     if (prefs?.push_notifications) {
       requestPermission();
@@ -97,7 +118,6 @@ const Dashboard = () => {
 
   const isDark = prefs?.theme === "dark" || (prefs?.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
-  // Apply theme on load and change
   useEffect(() => {
     if (!prefs) return;
     const root = document.documentElement;
@@ -114,6 +134,7 @@ const Dashboard = () => {
     const newTheme = isDark ? "light" : "dark";
     updatePrefs.mutate({ theme: newTheme } as any);
   };
+
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
   const { data: tags = [] } = useTags();
@@ -195,8 +216,8 @@ const Dashboard = () => {
     }
   };
 
-  const viewOrder: Record<string, number> = { inbox: 0, today: 1, upcoming: 2, all: 3, completed: 4, project: 5, analytics: 6, settings: 7 };
-  const switchView = (v: ViewType | "project", projectId?: string) => {
+  const viewOrder: Record<string, number> = { inbox: 0, today: 1, upcoming: 2, all: 3, completed: 4, project: 5, analytics: 6, settings: 7, calendar: 8, matrix: 9 };
+  const switchView = (v: ExtendedView, projectId?: string) => {
     const oldIdx = viewOrder[view] ?? 0;
     const newIdx = viewOrder[v] ?? 0;
     setSlideDirection(newIdx > oldIdx ? 1 : newIdx < oldIdx ? -1 : 0);
@@ -208,14 +229,20 @@ const Dashboard = () => {
 
   const currentTitle =
     view === "settings" ? ""
+    : view === "calendar" ? "Calendar"
+    : view === "matrix" ? "Priority Matrix"
     : view === "project" && selectedProject ? selectedProject.name
     : mobileTabs.find((v) => v.id === view)?.label
       || (view === "upcoming" ? "Upcoming" : view === "completed" ? "Completed" : view === "analytics" ? "Analytics" : "Tasks");
 
-  const showAddTask = !["completed", "settings", "analytics"].includes(view);
+  const showAddTask = !["completed", "settings", "analytics", "calendar", "matrix"].includes(view);
 
   const displayName = profile?.display_name || user?.email?.split("@")[0] || "";
   const showGreetingHeader = view === "today" || view === "inbox";
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => { sessionStorage.setItem("focusflow_splash_done", "1"); setShowSplash(false); }} />;
+  }
 
   if (showOnboarding) {
     return (
@@ -230,6 +257,9 @@ const Dashboard = () => {
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden safe-area-top">
+      {/* Undo Toast */}
+      <UndoToast />
+
       {/* HEADER */}
       {view !== "settings" && (
         <header className="flex-shrink-0 bg-background">
@@ -356,7 +386,7 @@ const Dashboard = () => {
       {/* CONTENT */}
       <div className="flex-1 overflow-y-auto">
         <div className="px-5 py-3 pb-28 max-w-2xl mx-auto">
-          {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && (
+          {view !== "completed" && view !== "project" && view !== "settings" && view !== "analytics" && view !== "calendar" && view !== "matrix" && (
             <div className="mb-3">
               <FilterBar filters={filters} onChange={setFilters} tags={tags} projects={projectNames} />
             </div>
@@ -364,18 +394,8 @@ const Dashboard = () => {
 
           {view === "settings" ? (
             <SettingsPage />
-          ) : isLoading && view !== "project" ? (
-            <div className="space-y-3 mt-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-center gap-3 py-3">
-                  <div className="w-[18px] h-[18px] rounded-full animate-shimmer flex-shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-3.5 w-3/4 rounded animate-shimmer" />
-                    <div className="h-2.5 w-1/3 rounded animate-shimmer" />
-                  </div>
-                </div>
-              ))}
-            </div>
+          ) : isLoading && view !== "project" && view !== "calendar" && view !== "matrix" ? (
+            <TaskSkeleton count={5} />
           ) : (
             <AnimatePresence mode="wait">
               <motion.div
@@ -389,18 +409,44 @@ const Dashboard = () => {
                   <TodayView tasks={filteredTasks} completedToday={completedToday} onEditTask={handleSelectTask} />
                 )}
                 {view === "inbox" && (
-                  <AllTasksView
-                    tasks={filteredTasks}
-                    onEditTask={handleSelectTask}
-                    emptyIcon={<Home size={40} className="text-muted-foreground/20 mx-auto" />}
-                    emptyTitle="All clear!"
-                    emptyDescription="Tasks without a project land here."
-                  />
+                  <>
+                    {/* Quick action chips */}
+                    <div className="flex gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1">
+                      {[
+                        { icon: Sun, label: "Plan Day", action: () => setDailyPlanningOpen(true), color: "text-warning" },
+                        { icon: Calendar, label: "Calendar", action: () => switchView("calendar" as ExtendedView), color: "text-primary" },
+                        { icon: Grid3X3, label: "Matrix", action: () => switchView("matrix" as ExtendedView), color: "text-destructive" },
+                        { icon: Layout, label: "Templates", action: () => setTemplatesOpen(true), color: "text-accent-foreground" },
+                        { icon: Sparkles, label: "Habits", action: () => setHabitsOpen(true), color: "text-success" },
+                        { icon: BarChart2, label: "Review", action: () => setWeeklyReviewOpen(true), color: "text-primary" },
+                        { icon: Download, label: "Export", action: () => setExportOpen(true), color: "text-muted-foreground" },
+                      ].map((chip) => (
+                        <motion.button
+                          key={chip.label}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={chip.action}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-border text-[11px] font-medium whitespace-nowrap hover:bg-muted transition-colors flex-shrink-0"
+                        >
+                          <chip.icon size={12} className={chip.color} />
+                          {chip.label}
+                        </motion.button>
+                      ))}
+                    </div>
+                    <AllTasksView
+                      tasks={filteredTasks}
+                      onEditTask={handleSelectTask}
+                      emptyIcon={<Home size={40} className="text-muted-foreground/20 mx-auto" />}
+                      emptyTitle="All clear!"
+                      emptyDescription="Tasks without a project land here."
+                    />
+                  </>
                 )}
                 {view === "upcoming" && <UpcomingView tasks={filteredTasks} onEditTask={handleSelectTask} />}
                 {view === "all" && <AllTasksView tasks={filteredTasks} onEditTask={handleSelectTask} />}
                 {view === "completed" && <CompletedView tasks={filteredTasks} onEditTask={handleSelectTask} />}
                 {view === "analytics" && <AnalyticsView activeTasks={activeTasks} completedTasks={completedTasks} />}
+                {view === "calendar" && <CalendarView tasks={activeTasks} onEditTask={handleSelectTask} />}
+                {view === "matrix" && <MatrixView tasks={activeTasks} onEditTask={handleSelectTask} />}
                 {view === "project" && selectedProject && (
                   <ProjectView
                     project={selectedProject}
@@ -433,7 +479,6 @@ const Dashboard = () => {
       {/* FAB with expandable actions */}
       {showAddTask && (
         <>
-          {/* Backdrop */}
           <AnimatePresence>
             {mobileAddOpen && (
               <motion.div
@@ -446,10 +491,20 @@ const Dashboard = () => {
             )}
           </AnimatePresence>
 
-          {/* Expanded action buttons */}
           <AnimatePresence>
             {mobileAddOpen && (
               <div className="fixed right-5 bottom-[calc(4rem+env(safe-area-inset-bottom)+80px)] z-40 flex flex-col items-end gap-3">
+                <motion.button
+                  initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 20, scale: 0.8 }}
+                  transition={{ delay: 0.1 }}
+                  onClick={() => { setMobileAddOpen(false); setTemplatesOpen(true); }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-card border border-border shadow-lg text-sm font-medium"
+                >
+                  <Layout size={16} className="text-accent-foreground" />
+                  Template
+                </motion.button>
                 <motion.button
                   initial={{ opacity: 0, y: 20, scale: 0.8 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -476,7 +531,6 @@ const Dashboard = () => {
             )}
           </AnimatePresence>
 
-          {/* FAB */}
           <motion.button
             initial={{ scale: 0 }}
             animate={{ scale: 1, rotate: mobileAddOpen ? 45 : 0 }}
@@ -489,7 +543,6 @@ const Dashboard = () => {
         </>
       )}
 
-      {/* Add task sheet — triggered from expanded FAB "Task" button */}
       <AddTaskInput asSheet sheetOpen={fabTaskOpen} onSheetOpenChange={setFabTaskOpen} />
 
       {/* BOTTOM TAB BAR */}
@@ -590,6 +643,8 @@ const Dashboard = () => {
 
             <div className="pt-3 border-t border-border mt-3 space-y-0.5">
               {[
+                { icon: Calendar, label: "Calendar", action: () => switchView("calendar" as ExtendedView) },
+                { icon: Grid3X3, label: "Priority Matrix", action: () => switchView("matrix" as ExtendedView) },
                 { icon: Calendar, label: "Upcoming", action: () => switchView("upcoming") },
                 { icon: CheckCircle2, label: "Completed", action: () => switchView("completed") },
               ].map(({ icon: Icon, label, action }) => (
@@ -648,6 +703,28 @@ const Dashboard = () => {
         task={focusTask}
         tasks={activeTasks}
         onSelectTask={setFocusTask}
+      />
+
+      {/* New feature overlays */}
+      <DailyPlanning
+        open={dailyPlanningOpen}
+        onClose={() => setDailyPlanningOpen(false)}
+        tasks={activeTasks}
+        onSelectTasks={() => {}}
+      />
+      <WeeklyReview
+        open={weeklyReviewOpen}
+        onClose={() => setWeeklyReviewOpen(false)}
+        completedTasks={completedTasks}
+        activeTasks={activeTasks}
+      />
+      <TaskTemplates open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
+      <HabitTracker open={habitsOpen} onClose={() => setHabitsOpen(false)} />
+      <ExportDialog
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        activeTasks={activeTasks}
+        completedTasks={completedTasks}
       />
     </div>
   );
