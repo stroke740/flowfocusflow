@@ -202,6 +202,17 @@ const Dashboard = () => {
   const displayName = profile?.display_name || user?.email?.split("@")[0] || "";
   const showGreetingHeader = view === "today" || view === "inbox";
 
+  if (showOnboarding) {
+    return (
+      <OnboardingFlow
+        onComplete={() => {
+          localStorage.setItem("focusflow_onboarded", "1");
+          setShowOnboarding(false);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden safe-area-top">
       {/* HEADER */}
