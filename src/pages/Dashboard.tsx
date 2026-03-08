@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
 import {
   Home, CalendarDays, CheckCircle2,
   Calendar, Plus, Search, FolderOpen, User,
