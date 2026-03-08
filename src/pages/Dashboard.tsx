@@ -25,6 +25,7 @@ import CommandPalette, { addRecentTask } from "@/components/search/CommandPalett
 import SettingsPage from "@/components/settings/SettingsPage";
 import FocusMode from "@/components/focus/FocusMode";
 import AnalyticsView from "@/components/views/AnalyticsView";
+import DailyProgressRing from "@/components/home/DailyProgressRing";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
 import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
@@ -252,11 +253,10 @@ const Dashboard = () => {
                 </div>
               )}
               {view === "inbox" && (
-                <div className="flex items-center gap-4 mt-2">
-                  <span className="text-[12px] text-muted-foreground">
-                    <span className="text-foreground font-semibold">{inboxCount}</span> tasks
-                  </span>
-                </div>
+                <DailyProgressRing
+                  completed={completedToday.length}
+                  total={completedToday.length + todayTasks.length}
+                />
               )}
             </div>
           ) : (
