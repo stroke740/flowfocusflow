@@ -3,14 +3,22 @@ import { motion } from "framer-motion";
 import { Flame, TrendingUp, Trophy } from "lucide-react";
 import { format, subDays, isSameDay, startOfDay, eachDayOfInterval } from "date-fns";
 import { Task } from "@/types/task";
+import { cn } from "@/lib/utils";
 
 interface Props {
   completed: number;
   total: number;
   completedTasks: Task[];
+  projects: { id: string; name: string; color: string; icon: string }[];
+  activeProjectFilter: string | null;
+  onProjectFilter: (id: string | null) => void;
+  taskCount: number;
 }
 
-const DailyProgressRing = ({ completed, total, completedTasks }: Props) => {
+const DailyProgressRing = ({
+  completed, total, completedTasks, projects,
+  activeProjectFilter, onProjectFilter, taskCount,
+}: Props) => {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
   const radius = 40;
   const stroke = 5;
@@ -56,15 +64,15 @@ const DailyProgressRing = ({ completed, total, completedTasks }: Props) => {
     return Math.max(max, cur);
   }, [completedTasks]);
 
-  // Weekly average (last 7 days)
+  // Weekly average
   const weeklyAvg = useMemo(() => {
     const days = eachDayOfInterval({ start: subDays(new Date(), 6), end: new Date() });
-    const total = days.reduce((sum, day) => {
+    const totalDone = days.reduce((sum, day) => {
       return sum + completedTasks.filter(
         (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
       ).length;
     }, 0);
-    return Math.round((total / 7) * 100);
+    return Math.round((totalDone / 7) * 100);
   }, [completedTasks]);
 
   return (
@@ -115,6 +123,52 @@ const DailyProgressRing = ({ completed, total, completedTasks }: Props) => {
           value={`${bestStreak}d`}
           label="BEST STREAK"
         />
+      </div>
+
+      {/* Horizontal progress bar */}
+      <div className="w-full flex items-center gap-2">
+        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+          <motion.div
+            className="h-full rounded-full bg-foreground/70"
+            initial={{ width: 0 }}
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+          />
+        </div>
+      </div>
+
+      {/* Project / Tag filter chips */}
+      <div className="flex items-center gap-2 w-full overflow-x-auto pb-1 no-scrollbar">
+        <button
+          onClick={() => onProjectFilter(null)}
+          className={cn(
+            "flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-colors",
+            !activeProjectFilter
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground hover:bg-muted/80"
+          )}
+        >
+          All ({taskCount})
+        </button>
+        {projects.map((p) => (
+          <button
+            key={p.id}
+            onClick={() => onProjectFilter(activeProjectFilter === p.id ? null : p.id)}
+            className={cn(
+              "flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors flex items-center gap-1.5",
+              activeProjectFilter === p.id
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
+            )}
+          >
+            <span>{p.icon}</span> {p.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Section header */}
+      <div className="w-full">
+        <h2 className="text-[16px] font-bold tracking-tight">Today's Tasks</h2>
       </div>
     </div>
   );
