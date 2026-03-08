@@ -222,7 +222,18 @@ export function useTaskMutations() {
 
       return data;
     },
-    onSuccess: invalidate,
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["tasks"] });
+      const prev = qc.getQueryData(["tasks", userId, "active"]);
+      qc.setQueryData(["tasks", userId, "active"], (old: Task[] | undefined) =>
+        (old || []).filter((t) => t.id !== id)
+      );
+      return { prev };
+    },
+    onError: (_, __, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["tasks", userId, "active"], ctx.prev);
+    },
+    onSettled: invalidate,
   });
 
   const uncompleteTask = useMutation({
