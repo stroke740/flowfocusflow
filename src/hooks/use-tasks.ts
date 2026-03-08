@@ -165,8 +165,19 @@ export function useTaskMutations() {
       const { error } = await supabase.from("tasks").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: invalidate,
-    onError: (e) => toast({ title: "Error", description: e.message, variant: "destructive" }),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ["tasks"] });
+      const prev = qc.getQueryData(["tasks", userId, "active"]);
+      qc.setQueryData(["tasks", userId, "active"], (old: Task[] | undefined) =>
+        (old || []).filter((t) => t.id !== id)
+      );
+      return { prev };
+    },
+    onError: (e, _, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["tasks", userId, "active"], ctx.prev);
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    },
+    onSettled: invalidate,
   });
 
   const completeTask = useMutation({
