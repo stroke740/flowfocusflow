@@ -17,44 +17,31 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Listen for auth changes first
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser({ id: session.user.id, email: session.user.email || "" });
-      } else {
-        setUser(null);
       }
-      setLoading(false);
+      setReady(true);
     });
 
-    // Then get initial session or sign in anonymously
+    // Silently get or create session — no UI, no waiting
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setUser({ id: session.user.id, email: session.user.email || "" });
-        setLoading(false);
+        setReady(true);
       } else {
-        // Auto sign-in anonymously for zero-friction experience
-        const { data, error } = await supabase.auth.signInAnonymously();
-        if (data?.user) {
-          setUser({ id: data.user.id, email: "" });
-        }
-        setLoading(false);
+        await supabase.auth.signInAnonymously();
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading: !ready, signOut: async () => {} }}>
       {children}
     </AuthContext.Provider>
   );
