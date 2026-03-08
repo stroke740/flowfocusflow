@@ -203,10 +203,7 @@ const Dashboard = () => {
             <div className="px-5 pt-4 pb-3">
               <div className="flex items-center justify-between mb-1">
                 <div>
-                  <p className="text-[13px] text-muted-foreground font-medium">
-                    {getGreeting()}{displayName ? `, ${displayName}` : ""} 👋
-                  </p>
-                  <h1 className="text-[22px] font-bold tracking-tight leading-tight mt-0.5">
+                  <h1 className="text-[22px] font-bold tracking-tight leading-tight">
                     {currentTitle}
                   </h1>
                 </div>
