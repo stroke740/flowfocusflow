@@ -269,7 +269,7 @@ const Dashboard = () => {
                   projects={projects}
                   activeProjectFilter={homeProjectFilter}
                   onProjectFilter={setHomeProjectFilter}
-                  taskCount={activeTasks.filter((t) => !t.project_id).length}
+                  taskCount={activeTasks.length}
                 />
               )}
             </div>
