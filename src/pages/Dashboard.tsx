@@ -219,10 +219,10 @@ const Dashboard = () => {
             <AnimatePresence mode="wait">
               <motion.div
                 key={view + (selectedProjectId || "")}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+                initial={{ opacity: 0, x: slideDirection * 60 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: slideDirection * -60 }}
+                transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
               >
                 {view === "today" && (
                   <TodayView tasks={filteredTasks} completedToday={completedToday} onEditTask={handleSelectTask} />
