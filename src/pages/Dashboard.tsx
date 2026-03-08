@@ -149,7 +149,11 @@ const Dashboard = () => {
     }
   };
 
+  const viewOrder: Record<string, number> = { inbox: 0, today: 1, upcoming: 2, all: 3, completed: 4, project: 5, analytics: 6, settings: 7 };
   const switchView = (v: ViewType | "project", projectId?: string) => {
+    const oldIdx = viewOrder[view] ?? 0;
+    const newIdx = viewOrder[v] ?? 0;
+    setSlideDirection(newIdx > oldIdx ? 1 : newIdx < oldIdx ? -1 : 0);
     setView(v);
     setSelectedProjectId(projectId || null);
     setMobileProjectsOpen(false);
