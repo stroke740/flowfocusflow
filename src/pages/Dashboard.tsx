@@ -263,6 +263,10 @@ const Dashboard = () => {
                   completed={completedToday.length}
                   total={completedToday.length + todayTasks.length}
                   completedTasks={completedTasks}
+                  projects={projects}
+                  activeProjectFilter={homeProjectFilter}
+                  onProjectFilter={setHomeProjectFilter}
+                  taskCount={activeTasks.filter((t) => !t.project_id).length}
                 />
               )}
             </div>
