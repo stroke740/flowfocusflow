@@ -25,6 +25,7 @@ import CommandPalette, { addRecentTask } from "@/components/search/CommandPalett
 import SettingsPage from "@/components/settings/SettingsPage";
 import FocusMode from "@/components/focus/FocusMode";
 import AnalyticsView from "@/components/views/AnalyticsView";
+import DailyProgressRing from "@/components/home/DailyProgressRing";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
 import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
