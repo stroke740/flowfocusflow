@@ -1,19 +1,75 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
+import { Flame, TrendingUp, Trophy } from "lucide-react";
+import { format, subDays, isSameDay, startOfDay, eachDayOfInterval } from "date-fns";
+import { Task } from "@/types/task";
 
 interface Props {
   completed: number;
   total: number;
+  completedTasks: Task[];
 }
 
-const DailyProgressRing = ({ completed, total }: Props) => {
+const DailyProgressRing = ({ completed, total, completedTasks }: Props) => {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
   const radius = 40;
   const stroke = 5;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (pct / 100) * circumference;
 
+  // Current streak
+  const streak = useMemo(() => {
+    let count = 0;
+    let day = startOfDay(new Date());
+    const todayDone = completedTasks.some(
+      (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
+    );
+    if (!todayDone) day = subDays(day, 1);
+    while (true) {
+      const has = completedTasks.some(
+        (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
+      );
+      if (!has) break;
+      count++;
+      day = subDays(day, 1);
+    }
+    return count;
+  }, [completedTasks]);
+
+  // Best streak
+  const bestStreak = useMemo(() => {
+    if (completedTasks.length === 0) return 0;
+    const days = new Set(
+      completedTasks
+        .filter((t) => t.completed_at)
+        .map((t) => format(new Date(t.completed_at!), "yyyy-MM-dd"))
+    );
+    const sorted = Array.from(days).sort();
+    let max = 0, cur = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = new Date(sorted[i - 1]);
+      const curr = new Date(sorted[i]);
+      const diff = (curr.getTime() - prev.getTime()) / 86400000;
+      if (diff === 1) { cur++; } else { cur = 1; }
+      max = Math.max(max, cur);
+    }
+    return Math.max(max, cur);
+  }, [completedTasks]);
+
+  // Weekly average (last 7 days)
+  const weeklyAvg = useMemo(() => {
+    const days = eachDayOfInterval({ start: subDays(new Date(), 6), end: new Date() });
+    const total = days.reduce((sum, day) => {
+      return sum + completedTasks.filter(
+        (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
+      ).length;
+    }, 0);
+    return Math.round((total / 7) * 100);
+  }, [completedTasks]);
+
   return (
-    <div className="flex flex-col items-center py-4">
+    <div className="flex flex-col items-center gap-4 py-2">
+      {/* Progress Ring */}
       <div className="relative w-[100px] h-[100px]">
         <svg width="100" height="100" viewBox="0 0 100 100" className="-rotate-90">
           <circle
@@ -41,8 +97,39 @@ const DailyProgressRing = ({ completed, total }: Props) => {
           </span>
         </div>
       </div>
+
+      {/* Stat Cards Row */}
+      <div className="grid grid-cols-3 gap-2.5 w-full">
+        <StatPill
+          icon={<Flame size={14} className="text-warning" />}
+          value={`${streak}d`}
+          label="TOP STREAK"
+        />
+        <StatPill
+          icon={<TrendingUp size={14} className="text-primary" />}
+          value={`${weeklyAvg}%`}
+          label="WEEKLY AVG"
+        />
+        <StatPill
+          icon={<Trophy size={14} className="text-warning" />}
+          value={`${bestStreak}d`}
+          label="BEST STREAK"
+        />
+      </div>
     </div>
   );
 };
+
+function StatPill({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5">
+      <div className="flex-shrink-0">{icon}</div>
+      <div className="min-w-0">
+        <p className="text-sm font-bold leading-tight">{value}</p>
+        <p className="text-[9px] text-muted-foreground font-medium tracking-wider leading-tight">{label}</p>
+      </div>
+    </div>
+  );
+}
 
 export default DailyProgressRing;
