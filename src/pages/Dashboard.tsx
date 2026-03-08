@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import {
   Inbox, CalendarDays, CheckCircle2,
   Calendar, Plus, Search, FolderOpen, User,
-  BarChart3, Timer, Bell,
+  BarChart3, Timer, Moon, Sun,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ViewType, FilterState, DEFAULT_FILTERS, Task } from "@/types/task";
@@ -27,6 +27,7 @@ import FocusMode from "@/components/focus/FocusMode";
 import AnalyticsView from "@/components/views/AnalyticsView";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
+import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
 import { isToday, isBefore, startOfDay, startOfTomorrow, format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -71,7 +72,28 @@ const Dashboard = () => {
 
   const { user } = useAuth();
   const { data: profile } = useProfile();
+  const { data: prefs } = usePreferences();
+  const updatePrefs = useUpdatePreferences();
 
+  const isDark = prefs?.theme === "dark" || (prefs?.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  // Apply theme on load and change
+  useEffect(() => {
+    if (!prefs) return;
+    const root = document.documentElement;
+    if (prefs.theme === "dark") {
+      root.classList.add("dark");
+    } else if (prefs.theme === "light") {
+      root.classList.remove("dark");
+    } else {
+      root.classList.toggle("dark", window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+  }, [prefs?.theme]);
+
+  const toggleDarkMode = () => {
+    const newTheme = isDark ? "light" : "dark";
+    updatePrefs.mutate({ theme: newTheme } as any);
+  };
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
   const { data: tags = [] } = useTags();
@@ -190,6 +212,12 @@ const Dashboard = () => {
                 </div>
                 <div className="flex items-center gap-1">
                   <button
+                    onClick={toggleDarkMode}
+                    className="w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  >
+                    {isDark ? <Sun size={16} strokeWidth={1.8} /> : <Moon size={16} strokeWidth={1.8} />}
+                  </button>
+                  <button
                     onClick={() => setSearchOpen(true)}
                     className="w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                   >
@@ -250,6 +278,12 @@ const Dashboard = () => {
                     {overdueCount} overdue
                   </button>
                 )}
+                <button
+                  onClick={toggleDarkMode}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  {isDark ? <Sun size={16} strokeWidth={1.8} /> : <Moon size={16} strokeWidth={1.8} />}
+                </button>
                 <button
                   onClick={() => setSearchOpen(true)}
                   className="w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
