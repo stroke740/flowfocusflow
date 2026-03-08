@@ -122,10 +122,10 @@ const Dashboard = () => {
 
   const baseTasks = view === "completed" ? completedTasks
     : view === "today" ? todayTasks
-    : view === "inbox" ? activeTasks.filter((t) => {
-        if (homeProjectFilter) return t.project_id === homeProjectFilter;
-        return !t.project_id;
-      })
+    : view === "inbox" ? (homeProjectFilter
+        ? activeTasks.filter((t) => t.project_id === homeProjectFilter)
+        : activeTasks
+      )
     : activeTasks;
   const filteredTasks = useFilteredTasks(baseTasks, filters);
   const isLoading = view === "completed" ? loadingCompleted : loadingActive;
