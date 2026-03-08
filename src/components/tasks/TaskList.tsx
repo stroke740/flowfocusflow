@@ -22,19 +22,19 @@ const TaskList = forwardRef<HTMLDivElement, TaskListProps>(({ tasks, onEditTask 
 
   const handleSwipeDelete = useCallback((task: Task) => {
     deleteTask.mutate(task.id);
-    toast({ title: "Task deleted", description: "This action cannot be undone." });
+    toast({ title: "Task deleted" });
   }, [deleteTask, toast]);
 
   if (!tasks.length) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground/60 text-sm">No tasks here</p>
+      <div className="text-center py-10">
+        <p className="text-muted-foreground/50 text-[13px]">No tasks</p>
       </div>
     );
   }
 
   return (
-    <div ref={ref} className="space-y-2">
+    <div ref={ref}>
       <AnimatePresence mode="popLayout">
         {tasks.map((task) => (
           <SwipeableTaskWrapper
