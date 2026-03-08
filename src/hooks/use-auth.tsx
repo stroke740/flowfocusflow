@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: { id: string; email: string } | null;
@@ -21,15 +20,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser({ id: session.user.id, email: session.user.email || "" });
-      }
-      setLoading(false);
-    });
-
-    // Listen for auth changes
+    // Listen for auth changes first
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser({ id: session.user.id, email: session.user.email || "" });
@@ -37,6 +28,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
       }
       setLoading(false);
+    });
+
+    // Then get initial session or sign in anonymously
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        setUser({ id: session.user.id, email: session.user.email || "" });
+        setLoading(false);
+      } else {
+        // Auto sign-in anonymously for zero-friction experience
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if (data?.user) {
+          setUser({ id: data.user.id, email: "" });
+        }
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
