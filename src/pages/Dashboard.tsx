@@ -253,11 +253,10 @@ const Dashboard = () => {
                 </div>
               )}
               {view === "inbox" && (
-                <div className="flex items-center gap-4 mt-2">
-                  <span className="text-[12px] text-muted-foreground">
-                    <span className="text-foreground font-semibold">{inboxCount}</span> tasks
-                  </span>
-                </div>
+                <DailyProgressRing
+                  completed={completedToday.length}
+                  total={completedToday.length + todayTasks.length}
+                />
               )}
             </div>
           ) : (
