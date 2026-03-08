@@ -212,6 +212,12 @@ const Dashboard = () => {
                 </div>
                 <div className="flex items-center gap-1">
                   <button
+                    onClick={toggleDarkMode}
+                    className="w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  >
+                    {isDark ? <Sun size={16} strokeWidth={1.8} /> : <Moon size={16} strokeWidth={1.8} />}
+                  </button>
+                  <button
                     onClick={() => setSearchOpen(true)}
                     className="w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                   >
