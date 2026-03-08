@@ -27,6 +27,7 @@ import FocusMode from "@/components/focus/FocusMode";
 import AnalyticsView from "@/components/views/AnalyticsView";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/use-profile";
+import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
 import { isToday, isBefore, startOfDay, startOfTomorrow, format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import {
