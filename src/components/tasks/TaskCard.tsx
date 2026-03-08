@@ -77,6 +77,9 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
     toast({ title: "Occurrence skipped" });
   };
 
+  // Progress for subtasks
+  const subtaskPct = subtasksTotal > 0 ? (subtasksDone / subtasksTotal) * 100 : 0;
+
   return (
     <motion.div
       layout
@@ -85,91 +88,99 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       className={cn(
-        "group flex items-start gap-3 px-2 py-3 task-separator cursor-pointer",
-        "hover:bg-muted/50 -mx-2 rounded-xl transition-colors duration-100"
+        "group flex items-center gap-3 p-3 rounded-2xl border border-border bg-card cursor-pointer mb-2",
+        "hover:shadow-task-hover transition-all duration-150",
+        isCompleted && "opacity-60"
       )}
       onClick={() => onEdit(task)}
     >
-      {/* Checkbox */}
-      <button
-        onClick={(e) => { e.stopPropagation(); handleComplete(); }}
+      {/* Icon / Priority indicator */}
+      <div
         className={cn(
-          "w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center flex-shrink-0 mt-[3px] transition-all duration-150",
-          isCompleted || completing
-            ? "bg-muted-foreground/40 border-muted-foreground/40"
-            : PRIORITY_RING[task.priority]
+          "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
+          task.priority === "p1" ? "bg-destructive/10" :
+          task.priority === "p2" ? "bg-warning/10" :
+          task.priority === "p3" ? "bg-primary/10" :
+          "bg-muted"
         )}
       >
-        {(isCompleted || completing) && (
-          <Check size={10} className="text-background" strokeWidth={3} />
-        )}
-      </button>
+        <span className="text-base">
+          {PRIORITY_CONFIG[task.priority].emoji || "📋"}
+        </span>
+      </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         <p
           className={cn(
-            "text-[13.5px] leading-[1.45] font-normal",
+            "text-[13.5px] leading-tight font-medium truncate",
             isCompleted && "line-through text-muted-foreground"
           )}
         >
           {task.title}
         </p>
 
-        {task.description && !isCompleted && (
-          <p className="text-[12px] text-muted-foreground/50 line-clamp-1 mt-0.5">
-            {task.description}
-          </p>
+        <div className="flex items-center gap-2 mt-1">
+          {hasRecurrence && (
+            <span className="inline-flex items-center gap-0.5 text-[11px] text-warning font-semibold">
+              <Repeat size={10} />
+            </span>
+          )}
+          {due && (
+            <span className={cn("text-[11px] font-semibold", due.color)}>
+              {due.text}
+            </span>
+          )}
+          {subtasksTotal > 0 && (
+            <span className="text-[11px] text-muted-foreground">
+              {subtasksDone} total
+            </span>
+          )}
+        </div>
+
+        {/* Mini progress bar */}
+        {subtasksTotal > 0 && (
+          <div className="mt-1.5 h-[3px] w-12 rounded-full bg-muted overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-primary"
+              initial={{ width: 0 }}
+              animate={{ width: `${subtaskPct}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
         )}
 
-        {(due || hasRecurrence || task.project || (task.tags && task.tags.length > 0) || subtasksTotal > 0) && (
-          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            {due && (
-              <span className={cn("inline-flex items-center gap-1 text-[11px]", due.color)}>
-                <Calendar size={10} />
-                {due.text}
-              </span>
-            )}
-
-            {hasRecurrence && (
-              <span className="inline-flex items-center text-[11px] text-muted-foreground/50">
-                <Repeat size={10} />
-              </span>
-            )}
-
-            {task.project && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                <span className="w-[6px] h-[6px] rounded-[2px] bg-primary/40 flex-shrink-0" />
-                {task.project}
-              </span>
-            )}
-
-            {task.tags?.slice(0, 2).map((tag) => (
+        {/* Tags */}
+        {task.tags && task.tags.length > 0 && (
+          <div className="flex items-center gap-1 mt-1">
+            {task.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag.id}
-                className="text-[10px] text-muted-foreground/70 bg-muted px-1.5 py-0.5 rounded"
-              >
-                {tag.name}
-              </span>
+                className="w-2 h-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: tag.color || "hsl(var(--primary))" }}
+              />
             ))}
-            {(task.tags?.length || 0) > 2 && (
-              <span className="text-[10px] text-muted-foreground/40">+{(task.tags?.length || 0) - 2}</span>
-            )}
-
-            {subtasksTotal > 0 && (
-              <span className={cn(
-                "text-[11px] tabular-nums",
-                subtasksDone === subtasksTotal ? "text-success" : "text-muted-foreground"
-              )}>
-                {subtasksDone}/{subtasksTotal}
-              </span>
-            )}
           </div>
         )}
       </div>
 
-      {/* Actions */}
-      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-100">
+      {/* Circular checkbox on right */}
+      <button
+        onClick={(e) => { e.stopPropagation(); handleComplete(); }}
+        className={cn(
+          "w-8 h-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-150",
+          isCompleted || completing
+            ? "bg-primary border-primary"
+            : "border-muted-foreground/25 hover:border-primary/50"
+        )}
+      >
+        {(isCompleted || completing) && (
+          <Check size={14} className="text-primary-foreground" strokeWidth={3} />
+        )}
+      </button>
+
+      {/* Context menu - hidden, shown on hover */}
+      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-100 absolute right-12 sm:relative sm:right-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
