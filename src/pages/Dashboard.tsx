@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import {
   Inbox, CalendarDays, CheckCircle2,
   Calendar, Plus, Search, FolderOpen, User,
-  BarChart3, Timer, Bell,
+  BarChart3, Timer, Moon, Sun,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ViewType, FilterState, DEFAULT_FILTERS, Task } from "@/types/task";
@@ -71,7 +71,28 @@ const Dashboard = () => {
 
   const { user } = useAuth();
   const { data: profile } = useProfile();
+  const { data: prefs } = usePreferences();
+  const updatePrefs = useUpdatePreferences();
 
+  const isDark = prefs?.theme === "dark" || (prefs?.theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  // Apply theme on load and change
+  useEffect(() => {
+    if (!prefs) return;
+    const root = document.documentElement;
+    if (prefs.theme === "dark") {
+      root.classList.add("dark");
+    } else if (prefs.theme === "light") {
+      root.classList.remove("dark");
+    } else {
+      root.classList.toggle("dark", window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+  }, [prefs?.theme]);
+
+  const toggleDarkMode = () => {
+    const newTheme = isDark ? "light" : "dark";
+    updatePrefs.mutate({ theme: newTheme } as any);
+  };
   const { data: activeTasks = [], isLoading: loadingActive } = useTasks("active");
   const { data: completedTasks = [], isLoading: loadingCompleted } = useTasks("completed");
   const { data: tags = [] } = useTags();
