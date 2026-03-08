@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Fuse from "fuse.js";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 import {
-  Search, X, CalendarDays, Inbox, Calendar, List, CheckCircle2,
+  Search, X, CalendarDays, Home, Calendar, List, CheckCircle2,
   Plus, Clock, FolderOpen, Sparkles, ArrowRight, Hash, AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
