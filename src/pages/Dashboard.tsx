@@ -71,6 +71,7 @@ const Dashboard = () => {
   const [mobileAddOpen, setMobileAddOpen] = useState(false);
   const [mobileProjectsOpen, setMobileProjectsOpen] = useState(false);
   const [homeProjectFilter, setHomeProjectFilter] = useState<string | null>(null);
+  const [fabTaskOpen, setFabTaskOpen] = useState(false);
 
   const { user } = useAuth();
   const { data: profile } = useProfile();
