@@ -37,7 +37,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const mobileTabs: { id: ViewType | "search" | "projects"; label: string; icon: typeof Inbox }[] = [
+const mobileTabs: { id: ViewType | "search" | "projects"; label: string; icon: typeof Home }[] = [
   { id: "inbox", label: "Home", icon: Home },
   { id: "today", label: "Today", icon: CalendarDays },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
