@@ -21,6 +21,7 @@ import TaskCard from "./TaskCard";
 import SwipeableTaskWrapper from "./SwipeableTaskWrapper";
 import { useTaskMutations } from "@/hooks/use-tasks";
 import { useToast } from "@/hooks/use-toast";
+import { showUndoToast } from "@/components/tasks/UndoToast";
 import { cn } from "@/lib/utils";
 
 interface TaskListProps {
@@ -80,7 +81,7 @@ function SortableTaskItem({ task, onEdit, completedCount, onSwipeComplete, onSwi
 }
 
 const TaskList = forwardRef<HTMLDivElement, TaskListProps>(({ tasks, onEditTask, enableDragDrop = true }, ref) => {
-  const { completeTask, deleteTask, reorderTasks } = useTaskMutations();
+  const { completeTask, deleteTask, reorderTasks, addTask } = useTaskMutations();
   const completedCount = tasks.filter((t) => t.status === "completed").length;
   const { toast } = useToast();
 
@@ -95,8 +96,11 @@ const TaskList = forwardRef<HTMLDivElement, TaskListProps>(({ tasks, onEditTask,
 
   const handleSwipeDelete = useCallback((task: Task) => {
     deleteTask.mutate(task.id);
-    toast({ title: "Task deleted" });
-  }, [deleteTask, toast]);
+    showUndoToast(`"${task.title}" deleted`, () => {
+      // Re-add the deleted task
+      addTask.mutate({ title: task.title, priority: task.priority, due_date: task.due_date, description: task.description, project_id: task.project_id });
+    });
+  }, [deleteTask, addTask]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
