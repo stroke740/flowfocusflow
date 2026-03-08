@@ -95,8 +95,11 @@ const TaskList = forwardRef<HTMLDivElement, TaskListProps>(({ tasks, onEditTask,
 
   const handleSwipeDelete = useCallback((task: Task) => {
     deleteTask.mutate(task.id);
-    toast({ title: "Task deleted" });
-  }, [deleteTask, toast]);
+    showUndoToast(`"${task.title}" deleted`, () => {
+      // Re-add the deleted task
+      addTask.mutate({ title: task.title, priority: task.priority, due_date: task.due_date, description: task.description, project_id: task.project_id });
+    });
+  }, [deleteTask, addTask]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
