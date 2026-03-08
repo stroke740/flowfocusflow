@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Fuse from "fuse.js";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 import {
-  Search, X, CalendarDays, Inbox, Calendar, List, CheckCircle2,
+  Search, X, CalendarDays, Home, Calendar, List, CheckCircle2,
   Plus, Clock, FolderOpen, Sparkles, ArrowRight, Hash, AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,7 +24,7 @@ interface SearchResult {
   id: string;
   title: string;
   subtitle?: string;
-  icon?: typeof Inbox;
+  icon?: typeof Home;
   color?: string;
   priority?: string;
   dueDate?: string | null;
@@ -101,7 +101,7 @@ const CommandPalette = ({
 
   const actions = useMemo(() => [
     { id: "view-today", label: "Go to Today", icon: CalendarDays, onSelect: () => { onNavigateView("today"); onOpenChange(false); } },
-    { id: "view-inbox", label: "Go to Inbox", icon: Inbox, onSelect: () => { onNavigateView("inbox"); onOpenChange(false); } },
+    { id: "view-inbox", label: "Go to Home", icon: Home, onSelect: () => { onNavigateView("inbox"); onOpenChange(false); } },
     { id: "view-upcoming", label: "Go to Upcoming", icon: Calendar, onSelect: () => { onNavigateView("upcoming"); onOpenChange(false); } },
     { id: "view-completed", label: "Go to Completed", icon: CheckCircle2, onSelect: () => { onNavigateView("completed"); onOpenChange(false); } },
     { id: "new-project", label: "Create New Project", icon: Plus, onSelect: () => { onCreateProject(); onOpenChange(false); } },

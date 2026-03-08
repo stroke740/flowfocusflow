@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import {
-  Inbox, CalendarDays, CheckCircle2,
+  Home, CalendarDays, CheckCircle2,
   Calendar, Plus, Search, FolderOpen, User,
   BarChart3, Timer, Moon, Sun,
 } from "lucide-react";
@@ -37,8 +37,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 
-const mobileTabs: { id: ViewType | "search" | "projects"; label: string; icon: typeof Inbox }[] = [
-  { id: "inbox", label: "Inbox", icon: Inbox },
+const mobileTabs: { id: ViewType | "search" | "projects"; label: string; icon: typeof Home }[] = [
+  { id: "inbox", label: "Home", icon: Home },
   { id: "today", label: "Today", icon: CalendarDays },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "projects", label: "Projects", icon: FolderOpen },
@@ -339,8 +339,8 @@ const Dashboard = () => {
                   <AllTasksView
                     tasks={filteredTasks}
                     onEditTask={handleSelectTask}
-                    emptyIcon={<Inbox size={40} className="text-muted-foreground/20 mx-auto" />}
-                    emptyTitle="Inbox zero"
+                    emptyIcon={<Home size={40} className="text-muted-foreground/20 mx-auto" />}
+                    emptyTitle="All clear!"
                     emptyDescription="Tasks without a project land here."
                   />
                 )}
