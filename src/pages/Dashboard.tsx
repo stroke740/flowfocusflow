@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
 import {
   Home, CalendarDays, CheckCircle2,
