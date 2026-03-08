@@ -81,7 +81,7 @@ function SortableTaskItem({ task, onEdit, completedCount, onSwipeComplete, onSwi
 }
 
 const TaskList = forwardRef<HTMLDivElement, TaskListProps>(({ tasks, onEditTask, enableDragDrop = true }, ref) => {
-  const { completeTask, deleteTask, reorderTasks } = useTaskMutations();
+  const { completeTask, deleteTask, reorderTasks, addTask } = useTaskMutations();
   const completedCount = tasks.filter((t) => t.status === "completed").length;
   const { toast } = useToast();
 
