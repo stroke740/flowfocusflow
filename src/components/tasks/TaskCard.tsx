@@ -51,11 +51,8 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
       await uncompleteTask.mutateAsync(task.id);
       return;
     }
-    // Phase 1: Checkbox fill (150ms)
     setCompleting(true);
-    // Phase 2: Strikethrough (starts at 150ms, 200ms duration)
     setTimeout(() => setStruck(true), 150);
-    // Phase 3: Fade out + persist (starts at 350ms, 300ms duration → total 650ms)
     setTimeout(async () => {
       await completeTask.mutateAsync(task.id);
       setCompleting(false);
@@ -90,10 +87,10 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
         scale: struck ? 0.98 : 1,
       }}
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
       className={cn(
-        "group flex items-start gap-3 px-3.5 py-2.5 rounded-xl border border-border transition-shadow cursor-pointer",
-        "hover:shadow-layered hover:-translate-y-px",
+        "flex items-start gap-3 px-4 py-3 rounded-2xl bg-card border border-border/60 transition-all",
+        "active:scale-[0.98] active:bg-muted/50",
         task.priority !== "p4" && "border-l-[3px]",
         due?.overdue && !isCompleted && "bg-destructive/[0.03]",
         isCompleted && "opacity-50"
@@ -107,10 +104,10 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
       <button
         onClick={(e) => { e.stopPropagation(); handleComplete(); }}
         className={cn(
-          "w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5",
+          "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5",
           isCompleted || completing
             ? "bg-primary border-primary"
-            : "border-muted-foreground/30 hover:border-primary/50 hover:scale-110"
+            : "border-muted-foreground/25 active:border-primary/60"
         )}
         style={{ transition: "all 150ms ease" }}
       >
@@ -120,7 +117,7 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 500, damping: 25, duration: 0.15 }}
           >
-            <Check size={10} className="text-primary-foreground" strokeWidth={3} />
+            <Check size={11} className="text-primary-foreground" strokeWidth={3} />
           </motion.div>
         )}
       </button>
@@ -137,13 +134,13 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
           {task.title}
         </p>
 
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
+        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
           {due && (
             <span className={cn(
-              "inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md",
+              "inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full",
               due.overdue && !isCompleted
-                ? "bg-destructive/10 text-destructive font-medium"
-                : "text-muted-foreground"
+                ? "bg-destructive/10 text-destructive font-semibold"
+                : "bg-muted text-muted-foreground"
             )}>
               <Calendar size={10} />
               {due.text}
@@ -151,13 +148,13 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
           )}
 
           {hasRecurrence && (
-            <span className="inline-flex items-center gap-0.5 text-[11px] text-primary/70">
+            <span className="inline-flex items-center gap-0.5 text-[11px] text-primary/70 bg-primary/5 px-1.5 py-0.5 rounded-full">
               <Repeat size={10} />
             </span>
           )}
 
           {task.project && (
-            <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground">
+            <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
               <span className="w-1.5 h-1.5 rounded-full bg-primary" />
               {task.project}
             </span>
@@ -166,19 +163,19 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
           {task.tags?.slice(0, 2).map((tag) => (
             <span
               key={tag.id}
-              className="text-[11px] px-1.5 py-0.5 rounded-md text-muted-foreground"
-              style={{ backgroundColor: tag.color + "18" }}
+              className="text-[11px] px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: tag.color + "18", color: tag.color }}
             >
               {tag.name}
             </span>
           ))}
           {(task.tags?.length || 0) > 2 && (
-            <span className="text-[11px] text-muted-foreground">+{(task.tags?.length || 0) - 2}</span>
+            <span className="text-[10px] text-muted-foreground">+{(task.tags?.length || 0) - 2}</span>
           )}
 
           {subtasksTotal > 0 && (
-            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-              <div className="w-10 h-1 rounded-full bg-muted overflow-hidden">
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+              <div className="w-10 h-1.5 rounded-full bg-muted overflow-hidden">
                 <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${(subtasksDone / subtasksTotal) * 100}%` }} />
               </div>
               {subtasksDone}/{subtasksTotal}
@@ -187,25 +184,25 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+      {/* Actions — always visible on mobile */}
+      <div className="flex-shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button onClick={(e) => e.stopPropagation()} className="p-1 rounded-md hover:bg-muted">
-              <MoreHorizontal size={14} className="text-muted-foreground" />
+            <button onClick={(e) => e.stopPropagation()} className="p-1.5 -mr-1 rounded-xl active:bg-muted">
+              <MoreHorizontal size={16} className="text-muted-foreground/50" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(task); }}>
+          <DropdownMenuContent align="end" className="w-44 rounded-xl">
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(task); }} className="rounded-lg">
               <Pencil size={14} className="mr-2" /> Edit
             </DropdownMenuItem>
             {hasRecurrence && (
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSkipOccurrence(); }}>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSkipOccurrence(); }} className="rounded-lg">
                 <SkipForward size={14} className="mr-2" /> Skip this occurrence
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(); }} className="text-destructive">
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(); }} className="text-destructive rounded-lg">
               <Trash2 size={14} className="mr-2" /> Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, forwardRef } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Task } from "@/types/task";
 import TaskCard from "./TaskCard";
@@ -11,7 +11,7 @@ interface TaskListProps {
   onEditTask: (task: Task) => void;
 }
 
-const TaskList = ({ tasks, onEditTask }: TaskListProps) => {
+const TaskList = forwardRef<HTMLDivElement, TaskListProps>(({ tasks, onEditTask }, ref) => {
   const { completeTask, deleteTask } = useTaskMutations();
   const completedCount = tasks.filter((t) => t.status === "completed").length;
   const { toast } = useToast();
@@ -27,14 +27,14 @@ const TaskList = ({ tasks, onEditTask }: TaskListProps) => {
 
   if (!tasks.length) {
     return (
-      <div className="text-center py-16">
-        <p className="text-muted-foreground text-sm">No tasks yet. Add one above!</p>
+      <div className="text-center py-12">
+        <p className="text-muted-foreground/60 text-sm">No tasks here</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-1.5">
+    <div ref={ref} className="space-y-2">
       <AnimatePresence mode="popLayout">
         {tasks.map((task) => (
           <SwipeableTaskWrapper
@@ -52,6 +52,8 @@ const TaskList = ({ tasks, onEditTask }: TaskListProps) => {
       </AnimatePresence>
     </div>
   );
-};
+});
+
+TaskList.displayName = "TaskList";
 
 export default TaskList;

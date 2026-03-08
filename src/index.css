@@ -6,50 +6,38 @@
 
 @layer base {
   :root {
-    /* #F9FAFB */
     --background: 210 20% 98%;
-    /* #111827 */
     --foreground: 221 39% 11%;
 
-    /* #FFFFFF */
     --card: 0 0% 100%;
     --card-foreground: 221 39% 11%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 221 39% 11%;
 
-    /* #4F46E5 */
     --primary: 244 76% 59%;
     --primary-foreground: 0 0% 100%;
 
-    /* #F3F4F6 */
     --secondary: 220 14% 96%;
     --secondary-foreground: 221 39% 11%;
 
-    /* #F3F4F6 */
     --muted: 220 14% 96%;
-    /* #6B7280 */
     --muted-foreground: 220 9% 46%;
 
-    /* #06B6D4 */
     --accent: 187 94% 43%;
     --accent-foreground: 0 0% 100%;
 
-    /* #EF4444 */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* #E5E7EB */
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 244 76% 59%;
 
     --radius: 0.75rem;
 
-    /* #10B981 */
     --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
-    /* #F59E0B */
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
@@ -66,28 +54,22 @@
   }
 
   .dark {
-    /* #0F1117 */
     --background: 228 25% 7%;
-    /* #F3F4F6 */
     --foreground: 220 14% 96%;
 
-    /* #1A1D2B */
     --card: 230 22% 13%;
     --card-foreground: 220 14% 96%;
 
     --popover: 230 22% 13%;
     --popover-foreground: 220 14% 96%;
 
-    /* #6366F1 — lighter for dark bg */
     --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
 
-    /* #1E2130 */
     --secondary: 230 20% 15%;
     --secondary-foreground: 220 14% 96%;
 
     --muted: 230 20% 15%;
-    /* #9CA3AF */
     --muted-foreground: 218 11% 65%;
 
     --accent: 187 80% 45%;
@@ -96,7 +78,6 @@
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    /* #2A2D3E */
     --border: 232 19% 20%;
     --input: 232 19% 20%;
     --ring: 239 84% 67%;
@@ -130,11 +111,29 @@
     font-size: 16px;
     line-height: 1.6;
     letter-spacing: -0.011em;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    overscroll-behavior-y: contain;
+    user-select: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     letter-spacing: -0.025em;
+  }
+
+  /* Smooth scrolling for all scrollable containers */
+  * {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Text selection */
+  p, span, h1, h2, h3, h4, h5, h6, input, textarea {
+    user-select: text;
   }
 }
 
@@ -151,22 +150,32 @@
       0 4px 12px hsl(var(--foreground) / 0.06),
       0 8px 24px hsl(var(--primary) / 0.1);
   }
+  .shadow-soft {
+    box-shadow: 0 2px 12px hsl(var(--foreground) / 0.06);
+  }
+  .shadow-glow {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+  }
 }
 
-/* Safe area for mobile bottom nav */
+/* Safe area for mobile */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
 @layer components {
-  /* Primary button hover scale */
-  button[class*="bg-primary"]:not(:disabled) {
-    transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+  /* Touch-optimized button feedback */
+  button:not(:disabled) {
+    -webkit-tap-highlight-color: transparent;
   }
-  button[class*="bg-primary"]:not(:disabled):hover {
-    transform: scale(1.02);
+  button:not(:disabled):active {
+    transform: scale(0.97);
+    transition: transform 80ms ease;
   }
 
   /* Empty state float animation */
@@ -176,5 +185,32 @@
   }
   .animate-float {
     animation: float 3s ease-in-out infinite;
+  }
+
+  /* Shimmer loading effect */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-shimmer {
+    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted-foreground) / 0.08) 50%, hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Pill-shaped tab indicator */
+  .tab-indicator {
+    position: relative;
+  }
+  .tab-indicator::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
   }
 }

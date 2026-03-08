@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, forwardRef } from "react";
 import { format, isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
 import { ChevronDown, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,7 @@ interface CompletedViewProps {
   onEditTask: (task: Task) => void;
 }
 
-const CompletedView = ({ tasks, onEditTask }: CompletedViewProps) => {
+const CompletedView = forwardRef<HTMLDivElement, CompletedViewProps>(({ tasks, onEditTask }, ref) => {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Today", "Yesterday"]));
 
   const grouped = useMemo(() => {
@@ -52,21 +52,25 @@ const CompletedView = ({ tasks, onEditTask }: CompletedViewProps) => {
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-20">
-        <Trophy size={40} className="mx-auto mb-3 text-muted-foreground/30" />
-        <p className="text-muted-foreground text-sm">No completed tasks yet. Finish one to see it here!</p>
+      <div ref={ref} className="text-center py-24">
+        <Trophy size={48} className="mx-auto mb-4 text-muted-foreground/20" />
+        <h3 className="text-base font-bold mb-1">No completed tasks yet</h3>
+        <p className="text-muted-foreground text-sm">Finish one to see it here!</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div ref={ref} className="space-y-5">
       {/* Stats header */}
-      <div className="bg-success/5 border border-success/20 rounded-xl p-4 flex items-center gap-3">
-        <Trophy size={20} className="text-success flex-shrink-0" />
-        <p className="text-sm">
-          You've completed <span className="font-bold text-foreground">{thisMonthCount}</span> tasks this month 🎉
-        </p>
+      <div className="bg-success/5 border border-success/15 rounded-2xl p-4 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center flex-shrink-0">
+          <Trophy size={20} className="text-success" />
+        </div>
+        <div>
+          <p className="text-2xl font-bold">{thisMonthCount}</p>
+          <p className="text-xs text-muted-foreground">tasks this month</p>
+        </div>
       </div>
 
       {/* Grouped timeline */}
@@ -74,14 +78,14 @@ const CompletedView = ({ tasks, onEditTask }: CompletedViewProps) => {
         <div key={label}>
           <button
             onClick={() => toggleGroup(label)}
-            className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2 py-1 active:text-foreground transition-colors"
           >
             <ChevronDown
               size={14}
-              className={cn("transition-transform", expandedGroups.has(label) && "rotate-180")}
+              className={cn("transition-transform duration-200", expandedGroups.has(label) && "rotate-180")}
             />
             {label}
-            <span className="text-muted-foreground/60 font-normal">({groupTasks.length})</span>
+            <span className="text-muted-foreground/40 font-normal">({groupTasks.length})</span>
           </button>
           {expandedGroups.has(label) && (
             <TaskList tasks={groupTasks} onEditTask={onEditTask} />
@@ -90,6 +94,8 @@ const CompletedView = ({ tasks, onEditTask }: CompletedViewProps) => {
       ))}
     </div>
   );
-};
+});
+
+CompletedView.displayName = "CompletedView";
 
 export default CompletedView;
