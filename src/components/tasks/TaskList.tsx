@@ -1,5 +1,5 @@
 import { useCallback, forwardRef } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Task } from "@/types/task";
 import TaskCard from "./TaskCard";
 import SwipeableTaskWrapper from "./SwipeableTaskWrapper";
@@ -27,16 +27,16 @@ const TaskList = forwardRef<HTMLDivElement, TaskListProps>(({ tasks, onEditTask 
 
   if (!tasks.length) {
     return (
-      <div className="text-center py-10">
-        <p className="text-muted-foreground/50 text-[13px]">No tasks</p>
+      <div className="text-center py-8">
+        <p className="text-muted-foreground/40 text-[13px]">No tasks yet</p>
       </div>
     );
   }
 
   return (
-    <div ref={ref}>
+    <div ref={ref} className="rounded-xl">
       <AnimatePresence mode="popLayout">
-        {tasks.map((task) => (
+        {tasks.map((task, i) => (
           <SwipeableTaskWrapper
             key={task.id}
             onSwipeRight={() => handleSwipeComplete(task)}
