@@ -357,7 +357,6 @@ const Dashboard = () => {
               {[
                 { icon: Calendar, label: "Upcoming", action: () => switchView("upcoming") },
                 { icon: CheckCircle2, label: "Completed", action: () => switchView("completed") },
-                { icon: BarChart3, label: "Analytics", action: () => switchView("analytics" as any) },
               ].map(({ icon: Icon, label, action }) => (
                 <button
                   key={label}
