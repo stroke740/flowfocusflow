@@ -218,17 +218,27 @@ const Dashboard = () => {
       {/* HEADER */}
       {view !== "settings" && (
         <header className="flex-shrink-0 bg-background">
-          {showGreetingHeader ? (
-            <div className="px-5 pt-4 pb-3">
-              <div className="flex items-center justify-between mb-1">
+        {showGreetingHeader ? (
+            <div className="px-5 pt-5 pb-3">
+              <div className="flex items-center justify-between mb-1.5">
                 <div>
-                  <h1 className="text-[22px] font-bold tracking-tight leading-tight">
+                  <motion.h1
+                    className="text-[24px] font-bold tracking-tight leading-tight"
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35 }}
+                  >
                     {view === "inbox" ? getGreeting() : currentTitle}
-                  </h1>
+                  </motion.h1>
                   {view === "inbox" && (
-                    <p className="text-[13px] text-muted-foreground mt-0.5">
+                    <motion.p
+                      className="text-[13px] text-muted-foreground mt-0.5 font-medium"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.1, duration: 0.3 }}
+                    >
                       {format(new Date(), "EEEE, MMM d")}
-                    </p>
+                    </motion.p>
                   )}
                 </div>
                 <div className="flex items-center gap-1">
@@ -455,15 +465,9 @@ const Dashboard = () => {
           <motion.button
             initial={{ scale: 0 }}
             animate={{ scale: 1, rotate: mobileAddOpen ? 45 : 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 22, delay: mobileAddOpen ? 0 : 0.15 }}
-            onClick={() => {
-              if (mobileAddOpen) {
-                setMobileAddOpen(false);
-              } else {
-                setMobileAddOpen(true);
-              }
-            }}
-            className="fixed right-5 bottom-[calc(4rem+env(safe-area-inset-bottom)+12px)] z-40 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-glow flex items-center justify-center active:scale-90 transition-transform"
+            transition={{ type: "spring", stiffness: 420, damping: 24, delay: mobileAddOpen ? 0 : 0.15 }}
+            onClick={() => setMobileAddOpen(!mobileAddOpen)}
+            className="fixed right-5 bottom-[calc(4.25rem+env(safe-area-inset-bottom)+12px)] z-40 w-[56px] h-[56px] rounded-[18px] bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center active:scale-90 transition-transform"
           >
             <Plus size={22} strokeWidth={2.5} />
           </motion.button>
@@ -474,8 +478,8 @@ const Dashboard = () => {
       <AddTaskInput asSheet sheetOpen={fabTaskOpen} onSheetOpenChange={setFabTaskOpen} />
 
       {/* BOTTOM TAB BAR */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border/60 z-30 pb-[env(safe-area-inset-bottom)]">
-        <div className="flex items-center justify-around px-1 h-14">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-2xl border-t border-border/40 z-30 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around px-2 h-[58px]">
           {mobileTabs.map((tab) => {
             const isActive =
               tab.id === "search" ? false
@@ -497,28 +501,36 @@ const Dashboard = () => {
                   else switchView(tab.id as ViewType);
                 }}
                 className={cn(
-                  "relative flex flex-col items-center gap-0.5 px-4 py-1.5 transition-all duration-200 min-w-[52px] rounded-xl",
-                  isActive ? "text-primary" : "text-muted-foreground/70 hover:text-muted-foreground"
+                  "relative flex flex-col items-center gap-[3px] px-3 py-1.5 transition-all duration-250 min-w-[48px]",
+                  isActive ? "text-primary" : "text-muted-foreground/60 active:text-muted-foreground"
                 )}
               >
                 <div className="relative">
                   {isActive && (
                     <motion.div
-                      layoutId="tab-indicator"
-                      className="absolute -inset-1.5 rounded-lg bg-primary/10"
-                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                      layoutId="tab-glow"
+                      className="absolute -inset-2 rounded-xl bg-primary/8"
+                      transition={{ type: "spring", stiffness: 500, damping: 32 }}
                     />
                   )}
-                  <tab.icon size={20} strokeWidth={isActive ? 2.2 : 1.5} className="relative z-10" />
+                  <tab.icon
+                    size={isActive ? 21 : 20}
+                    strokeWidth={isActive ? 2.3 : 1.5}
+                    className="relative z-10 transition-all duration-200"
+                  />
                   {badge && badge > 0 && (
-                    <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center z-20">
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1 -right-2.5 min-w-[16px] h-[16px] px-1 rounded-full bg-primary text-primary-foreground text-[8px] font-bold flex items-center justify-center z-20 shadow-sm shadow-primary/30"
+                    >
                       {badge > 99 ? "99+" : badge}
-                    </span>
+                    </motion.span>
                   )}
                 </div>
                 <span className={cn(
-                  "text-[10px] relative z-10 transition-all",
-                  isActive ? "font-bold" : "font-medium"
+                  "text-[9px] relative z-10 transition-all duration-200 tracking-wide",
+                  isActive ? "font-bold text-primary" : "font-medium"
                 )}>
                   {tab.label}
                 </span>
