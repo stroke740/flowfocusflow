@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { format, isToday, isBefore } from "date-fns";
 import { motion } from "framer-motion";
-import { ChevronDown, Coffee } from "lucide-react";
+import { ChevronDown, Sun, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Task } from "@/types/task";
 import TaskList from "../tasks/TaskList";
@@ -26,29 +26,34 @@ const TodayView = ({ tasks, completedToday, onEditTask }: TodayViewProps) => {
 
   if (tasks.length === 0 && completedToday.length === 0) {
     return (
-      <div className="text-center py-20">
-        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-          <Coffee size={20} className="text-muted-foreground/40" />
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="text-center py-20"
+      >
+        <div className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-4">
+          <Sun size={28} className="text-success" />
         </div>
-        <h3 className="text-sm font-medium mb-1">All done for today</h3>
-        <p className="text-muted-foreground text-[13px]">Enjoy the rest of your day</p>
-      </div>
+        <h3 className="text-base font-bold mb-1">All done for today!</h3>
+        <p className="text-muted-foreground text-[13px] max-w-[220px] mx-auto">
+          Enjoy the rest of your day. You've earned it.
+        </p>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-5">
-      {/* Date header — Todoist style */}
-      <div className="flex items-baseline gap-2">
-        <h2 className="text-xl font-bold tracking-tight">{format(new Date(), "MMM d")} ‧ Today</h2>
-        <span className="text-[12px] text-muted-foreground font-normal">{format(new Date(), "EEEE")}</span>
-      </div>
-
+    <div className="space-y-4">
       {overdue.length > 0 && (
         <section>
-          <h3 className="text-[12px] font-semibold text-destructive mb-2">
-            Overdue
-          </h3>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
+            <h3 className="text-[12px] font-bold text-destructive uppercase tracking-wider">
+              Overdue
+            </h3>
+            <span className="text-[11px] text-destructive/60 font-medium">{overdue.length}</span>
+          </div>
           <TaskList tasks={overdue} onEditTask={onEditTask} />
         </section>
       )}
@@ -56,24 +61,41 @@ const TodayView = ({ tasks, completedToday, onEditTask }: TodayViewProps) => {
       {todayOnly.length > 0 && (
         <section>
           {overdue.length > 0 && (
-            <h3 className="text-[12px] font-semibold text-muted-foreground mb-2">
-              {todayOnly.length} task{todayOnly.length !== 1 ? "s" : ""}
-            </h3>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              <h3 className="text-[12px] font-bold text-foreground uppercase tracking-wider">
+                Today
+              </h3>
+              <span className="text-[11px] text-muted-foreground font-medium">{todayOnly.length}</span>
+            </div>
           )}
           <TaskList tasks={todayOnly} onEditTask={onEditTask} />
         </section>
       )}
 
       {completedToday.length > 0 && (
-        <section>
+        <section className="mt-2">
           <button
             onClick={() => setShowCompleted(!showCompleted)}
-            className="flex items-center gap-1.5 text-[12px] text-muted-foreground hover:text-foreground transition-colors py-1"
+            className="flex items-center gap-2 text-[12px] text-muted-foreground hover:text-foreground transition-colors py-1.5 group"
           >
-            <ChevronDown size={14} className={cn("transition-transform duration-150", showCompleted && "rotate-180")} />
-            <span className="font-medium">{completedToday.length} completed</span>
+            <ChevronDown
+              size={14}
+              className={cn("transition-transform duration-200", showCompleted && "rotate-180")}
+            />
+            <CheckCircle2 size={12} className="text-success/60" />
+            <span className="font-semibold">{completedToday.length} completed today</span>
           </button>
-          {showCompleted && <TaskList tasks={completedToday} onEditTask={onEditTask} />}
+          {showCompleted && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <TaskList tasks={completedToday} onEditTask={onEditTask} />
+            </motion.div>
+          )}
         </section>
       )}
     </div>
