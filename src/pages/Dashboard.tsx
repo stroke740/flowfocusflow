@@ -38,7 +38,7 @@ import {
 const mobileTabs: { id: ViewType | "search" | "projects"; label: string; icon: typeof Inbox }[] = [
   { id: "inbox", label: "Inbox", icon: Inbox },
   { id: "today", label: "Today", icon: CalendarDays },
-  { id: "search", label: "Search", icon: Search },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "projects", label: "Projects", icon: FolderOpen },
   { id: "settings", label: "Me", icon: User },
 ];
