@@ -47,6 +47,7 @@ const mobileTabs: { id: ViewType | "search" | "projects"; label: string; icon: t
 const Dashboard = () => {
   const [view, setView] = useState<ViewType | "project">("today");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [slideDirection, setSlideDirection] = useState(0);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
