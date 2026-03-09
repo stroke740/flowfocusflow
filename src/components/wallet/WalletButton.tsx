@@ -46,9 +46,9 @@ export function WalletButton() {
       <button
         onClick={handleConnect}
         disabled={connecting}
-        className="w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+        className="h-9 px-3 rounded-xl border border-border bg-background flex items-center justify-center text-foreground hover:bg-muted transition-colors disabled:opacity-50 text-[12px] font-medium"
       >
-        <Wallet size={16} strokeWidth={1.8} />
+        {connecting ? '...' : 'Connect'}
       </button>
     );
   }
@@ -56,8 +56,9 @@ export function WalletButton() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button className="w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-          <Wallet size={16} strokeWidth={1.8} />
+        <button className="h-9 px-3 rounded-xl border border-border bg-background flex items-center gap-1.5 text-foreground hover:bg-muted transition-colors text-[12px] font-medium font-mono">
+          {truncateAddress(account?.address || '')}
+          <ChevronDown size={12} className="text-muted-foreground" />
         </button>
       </SheetTrigger>
       <SheetContent side="bottom" className="rounded-t-xl">
