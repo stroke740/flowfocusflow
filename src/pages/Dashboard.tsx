@@ -45,6 +45,7 @@ import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
 import { isToday, isBefore, startOfDay, startOfTomorrow, format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { WalletButton } from "@/components/wallet/WalletButton";
 import {
   Sheet,
   SheetContent,
