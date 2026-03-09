@@ -134,7 +134,7 @@ export function DashboardHeader({
           {view === "inbox" && (
             <DailyProgressRing
               completed={completedToday.length}
-              total={completedToday.length + todayTasks.length}
+              total={completedToday.length + activeTasks.length}
               completedTasks={completedTasks}
               projects={projects}
               activeProjectFilter={homeProjectFilter}
