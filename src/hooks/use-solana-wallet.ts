@@ -77,8 +77,8 @@ export function useSolanaWallet() {
   // Check if MWA is available (native Android app)
   const isMwaAvailable = useCallback(async () => {
     try {
-      const { transact } = await import('@solana-mobile/mobile-wallet-adapter-protocol');
-      return typeof transact === 'function';
+      const mwa = await import('@solana-mobile/mobile-wallet-adapter-protocol');
+      return typeof mwa?.transact === 'function';
     } catch {
       return false;
     }
