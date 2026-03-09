@@ -174,6 +174,7 @@ export type Database = {
           due_date: string | null
           id: string
           parent_id: string | null
+          pinned: boolean
           position: number
           priority: Database["public"]["Enums"]["task_priority"]
           project: string | null
@@ -194,6 +195,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           parent_id?: string | null
+          pinned?: boolean
           position?: number
           priority?: Database["public"]["Enums"]["task_priority"]
           project?: string | null
@@ -214,6 +216,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           parent_id?: string | null
+          pinned?: boolean
           position?: number
           priority?: Database["public"]["Enums"]["task_priority"]
           project?: string | null
@@ -263,6 +266,7 @@ export type Database = {
           reminder_default_minutes: number
           sound_effects: boolean
           start_of_week: string
+          task_density: string
           task_input_position: string
           theme: string
           updated_at: string
@@ -286,6 +290,7 @@ export type Database = {
           reminder_default_minutes?: number
           sound_effects?: boolean
           start_of_week?: string
+          task_density?: string
           task_input_position?: string
           theme?: string
           updated_at?: string
@@ -309,6 +314,7 @@ export type Database = {
           reminder_default_minutes?: number
           sound_effects?: boolean
           start_of_week?: string
+          task_density?: string
           task_input_position?: string
           theme?: string
           updated_at?: string

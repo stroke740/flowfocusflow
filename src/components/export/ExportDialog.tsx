@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { forwardRef } from "react";
 import { motion } from "framer-motion";
 import { Download, FileText, Table2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ interface ExportDialogProps {
   completedTasks: Task[];
 }
 
-const ExportDialog = ({ open, onClose, activeTasks, completedTasks }: ExportDialogProps) => {
+const ExportDialog = forwardRef<HTMLDivElement, ExportDialogProps>(({ open, onClose, activeTasks, completedTasks }, ref) => {
   const allTasks = [...activeTasks, ...completedTasks];
 
   const exportCSV = () => {
@@ -59,6 +59,7 @@ const ExportDialog = ({ open, onClose, activeTasks, completedTasks }: ExportDial
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6"
@@ -105,6 +106,8 @@ const ExportDialog = ({ open, onClose, activeTasks, completedTasks }: ExportDial
       </motion.div>
     </motion.div>
   );
-};
+});
+
+ExportDialog.displayName = "ExportDialog";
 
 export default ExportDialog;
