@@ -112,9 +112,9 @@ export function useSolanaWallet() {
 
   // MWA connection (for native mobile apps)
   const connectMwa = useCallback(async () => {
-    const { transact, type MobileWallet } = await import('@solana-mobile/mobile-wallet-adapter-protocol');
+    const mwa = await import('@solana-mobile/mobile-wallet-adapter-protocol');
     
-    const result = await transact(async (wallet: MobileWallet) => {
+    const result = await mwa.transact(async (wallet) => {
       const authResult = await wallet.authorize({
         cluster: CLUSTER,
         identity: APP_IDENTITY,
@@ -178,8 +178,8 @@ export function useSolanaWallet() {
       }
     } else if (state.walletType === 'mwa' && state.authToken) {
       try {
-        const { transact, type MobileWallet } = await import('@solana-mobile/mobile-wallet-adapter-protocol');
-        await transact(async (wallet: MobileWallet) => {
+        const mwa = await import('@solana-mobile/mobile-wallet-adapter-protocol');
+        await mwa.transact(async (wallet) => {
           await wallet.deauthorize({ auth_token: state.authToken! });
         });
       } catch (error) {
@@ -210,8 +210,8 @@ export function useSolanaWallet() {
     }
 
     // MWA signing
-    const { transact, type MobileWallet } = await import('@solana-mobile/mobile-wallet-adapter-protocol');
-    const signedMessage = await transact(async (wallet: MobileWallet) => {
+    const mwa = await import('@solana-mobile/mobile-wallet-adapter-protocol');
+    const signedMessage = await mwa.transact(async (wallet) => {
       await wallet.reauthorize({
         auth_token: state.authToken!,
         identity: APP_IDENTITY,
@@ -243,8 +243,8 @@ export function useSolanaWallet() {
     }
 
     // MWA signing
-    const { transact, type MobileWallet } = await import('@solana-mobile/mobile-wallet-adapter-protocol');
-    const signedTx = await transact(async (wallet: MobileWallet) => {
+    const mwa = await import('@solana-mobile/mobile-wallet-adapter-protocol');
+    const signedTx = await mwa.transact(async (wallet) => {
       await wallet.reauthorize({
         auth_token: state.authToken!,
         identity: APP_IDENTITY,
@@ -284,8 +284,8 @@ export function useSolanaWallet() {
     }
 
     // MWA signing and sending
-    const { transact, type MobileWallet } = await import('@solana-mobile/mobile-wallet-adapter-protocol');
-    const signature = await transact(async (wallet: MobileWallet) => {
+    const mwa = await import('@solana-mobile/mobile-wallet-adapter-protocol');
+    const signature = await mwa.transact(async (wallet) => {
       await wallet.reauthorize({
         auth_token: state.authToken!,
         identity: APP_IDENTITY,
