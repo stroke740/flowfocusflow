@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SplashScreenProps {
@@ -7,15 +7,17 @@ interface SplashScreenProps {
 
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
   const [phase, setPhase] = useState<"logo" | "fade" | "done">("logo");
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase("fade"), 2000);
     const t2 = setTimeout(() => {
       setPhase("done");
-      onComplete();
+      onCompleteRef.current();
     }, 2600);
     return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [onComplete]);
+  }, []);
 
   if (phase === "done") return null;
 

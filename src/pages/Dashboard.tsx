@@ -247,15 +247,23 @@ const Dashboard = () => {
     else switchView(tabId as ViewType);
   }, [switchView]);
 
+  const handleSplashComplete = useCallback(() => {
+    sessionStorage.setItem("focusflow_splash_done", "1");
+    setShowSplash(false);
+  }, []);
+
+  const handleOnboardingComplete = useCallback(() => {
+    localStorage.setItem("focusflow_onboarded", "1");
+    setShowOnboarding(false);
+  }, []);
+
   if (showSplash) {
-    return <SplashScreen onComplete={() => { sessionStorage.setItem("focusflow_splash_done", "1"); setShowSplash(false); }} />;
+    return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
   if (showOnboarding) {
     return (
-      <OnboardingFlow
-        onComplete={() => { localStorage.setItem("focusflow_onboarded", "1"); setShowOnboarding(false); }}
-      />
+      <OnboardingFlow onComplete={handleOnboardingComplete} />
     );
   }
 
