@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { } from "react";
 import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
