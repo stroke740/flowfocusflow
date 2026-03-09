@@ -45,6 +45,7 @@ import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
 import { isToday, isBefore, startOfDay, startOfTomorrow, format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { WalletButton } from "@/components/wallet/WalletButton";
 import {
   Sheet,
   SheetContent,
@@ -306,6 +307,7 @@ const Dashboard = () => {
                     <Timer size={16} strokeWidth={1.8} />
                   </button>
                   <NotificationCenter onNavigateToTask={handleNavigateToTask} />
+                  <WalletButton />
                 </div>
               </div>
 
@@ -377,6 +379,7 @@ const Dashboard = () => {
                   <Timer size={16} strokeWidth={1.8} />
                 </button>
                 <NotificationCenter onNavigateToTask={handleNavigateToTask} />
+                <WalletButton />
               </div>
             </div>
           )}
