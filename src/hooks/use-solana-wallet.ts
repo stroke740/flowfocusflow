@@ -49,7 +49,7 @@ export function useSolanaWallet() {
     setState(prev => ({ ...prev, connecting: true }));
     
     try {
-      const result = await transact(async (wallet: Web3MobileWallet) => {
+      const result = await transact(async (wallet: MobileWallet) => {
         const authResult = await wallet.authorize({
           cluster: CLUSTER,
           identity: APP_IDENTITY,
