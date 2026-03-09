@@ -109,7 +109,7 @@ export function WalletButton() {
 
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Network</span>
-              <span className="text-sm text-amber-500 font-medium">Devnet</span>
+              <span className="text-sm text-green-500 font-medium">Mainnet</span>
             </div>
           </div>
 
@@ -120,7 +120,7 @@ export function WalletButton() {
               className="justify-start gap-2"
               onClick={() => {
                 if (account?.address) {
-                  window.open(`https://explorer.solana.com/address/${account.address}?cluster=devnet`, '_blank');
+                  window.open(`https://explorer.solana.com/address/${account.address}`, '_blank');
                 }
               }}
             >
