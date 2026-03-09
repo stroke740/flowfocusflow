@@ -29,6 +29,54 @@ const DailyProgressRing = ({
   const isComplete = pct === 100;
   const ringColor = isComplete ? "hsl(var(--success))" : "hsl(var(--primary))";
 
+  const streak = useMemo(() => {
+    let count = 0;
+    let day = startOfDay(new Date());
+    const todayDone = completedTasks.some(
+      (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
+    );
+    if (!todayDone) day = subDays(day, 1);
+    while (true) {
+      const has = completedTasks.some(
+        (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
+      );
+      if (!has) break;
+      count++;
+      day = subDays(day, 1);
+    }
+    return count;
+  }, [completedTasks]);
+
+  const bestStreak = useMemo(() => {
+    if (completedTasks.length === 0) return 0;
+    const days = new Set(
+      completedTasks
+        .filter((t) => t.completed_at)
+        .map((t) => format(new Date(t.completed_at!), "yyyy-MM-dd"))
+    );
+    const sorted = Array.from(days).sort();
+    let max = 0, cur = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = new Date(sorted[i - 1]);
+      const curr = new Date(sorted[i]);
+      const diff = (curr.getTime() - prev.getTime()) / 86400000;
+      if (diff === 1) { cur++; } else { cur = 1; }
+      max = Math.max(max, cur);
+    }
+    return Math.max(max, cur);
+  }, [completedTasks]);
+
+  const weeklyAvg = useMemo(() => {
+    const days = eachDayOfInterval({ start: subDays(new Date(), 6), end: new Date() });
+    const totalDone = days.reduce((sum, day) => {
+      return sum + completedTasks.filter(
+        (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
+      ).length;
+    }, 0);
+    const avg = totalDone / 7;
+    return avg >= 1 ? avg.toFixed(0) : avg.toFixed(1);
+  }, [completedTasks]);
+
   return (
     <div className="flex flex-col items-center gap-5 py-3">
       {/* Progress Ring */}
