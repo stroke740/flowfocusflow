@@ -59,6 +59,7 @@ const ExportDialog = forwardRef<HTMLDivElement, ExportDialogProps>(({ open, onCl
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-6"
@@ -105,6 +106,8 @@ const ExportDialog = forwardRef<HTMLDivElement, ExportDialogProps>(({ open, onCl
       </motion.div>
     </motion.div>
   );
-};
+});
+
+ExportDialog.displayName = "ExportDialog";
 
 export default ExportDialog;
