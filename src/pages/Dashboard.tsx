@@ -115,6 +115,37 @@ const Dashboard = () => {
   const { data: projects = [] } = useProjects();
   const { data: taskCounts = new Map() } = useProjectTaskCounts();
   const { addProject, updateProject, deleteProject } = useProjectMutations();
+  const { completeTask, deleteTask: deleteTaskMut, updateTask } = useTaskMutations();
+
+  // Bulk action handlers
+  const handleBulkComplete = useCallback(() => {
+    selectedTaskIds.forEach(id => completeTask.mutate(id));
+    setSelectedTaskIds(new Set());
+  }, [selectedTaskIds, completeTask]);
+
+  const handleBulkDelete = useCallback(() => {
+    selectedTaskIds.forEach(id => deleteTaskMut.mutate(id));
+    setSelectedTaskIds(new Set());
+  }, [selectedTaskIds, deleteTaskMut]);
+
+  const handleBulkPriority = useCallback((p: TaskPriority) => {
+    selectedTaskIds.forEach(id => updateTask.mutate({ id, priority: p } as any));
+    setSelectedTaskIds(new Set());
+  }, [selectedTaskIds, updateTask]);
+
+  const handleBulkMoveProject = useCallback((projectId: string | null) => {
+    selectedTaskIds.forEach(id => updateTask.mutate({ id, project_id: projectId } as any));
+    setSelectedTaskIds(new Set());
+  }, [selectedTaskIds, updateTask]);
+
+  const toggleTaskSelection = useCallback((taskId: string) => {
+    setSelectedTaskIds(prev => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  }, []);
 
   const inboxCount = useMemo(() => activeTasks.filter((t) => !t.project_id).length, [activeTasks]);
   const todayTasks = useMemo(
