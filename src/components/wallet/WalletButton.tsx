@@ -90,8 +90,8 @@ export function WalletButton() {
             
             {account?.label && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Label</span>
-                <span className="text-sm">{account.label}</span>
+                <span className="text-sm text-muted-foreground">Wallet</span>
+                <span className="text-sm font-medium">{account.label}</span>
               </div>
             )}
             
