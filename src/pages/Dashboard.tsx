@@ -379,6 +379,7 @@ const Dashboard = () => {
                   <Timer size={16} strokeWidth={1.8} />
                 </button>
                 <NotificationCenter onNavigateToTask={handleNavigateToTask} />
+                <WalletButton />
               </div>
             </div>
           )}
