@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { forwardRef } from "react";
 import { motion } from "framer-motion";
 import { Download, FileText, Table2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ interface ExportDialogProps {
   completedTasks: Task[];
 }
 
-const ExportDialog = ({ open, onClose, activeTasks, completedTasks }: ExportDialogProps) => {
+const ExportDialog = forwardRef<HTMLDivElement, ExportDialogProps>(({ open, onClose, activeTasks, completedTasks }, ref) => {
   const allTasks = [...activeTasks, ...completedTasks];
 
   const exportCSV = () => {
