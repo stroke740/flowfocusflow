@@ -4,7 +4,7 @@ import { usePreferences } from "./use-preferences";
 import { isBefore, startOfDay, differenceInMinutes } from "date-fns";
 
 // Safe check for Notification API
-const hasNotificationAPI = typeof window !== "undefined" && "Notification" in window;
+const hasNotificationAPI = typeof window !== "undefined" && typeof window.Notification !== "undefined";
 
 function getNotificationPermission(): NotificationPermission | "unsupported" {
   if (!hasNotificationAPI) return "unsupported";

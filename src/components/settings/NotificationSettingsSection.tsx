@@ -19,9 +19,11 @@ const REMINDER_OPTIONS = [
 const NotificationSettingsSection = () => {
   const { data: prefs, isLoading } = usePreferences();
   const updatePrefs = useUpdatePreferences();
-  const [browserPermission, setBrowserPermission] = useState(
-    typeof Notification !== "undefined" ? Notification.permission : "default"
-  );
+  const hasNotifAPI = typeof window !== "undefined" && typeof window.Notification !== "undefined";
+  const [browserPermission, setBrowserPermission] = useState(() => {
+    if (!hasNotifAPI) return "default";
+    try { return window.Notification.permission; } catch { return "default"; }
+  });
 
   const update = async (key: string, value: any) => {
     try {
@@ -32,18 +34,22 @@ const NotificationSettingsSection = () => {
   };
 
   const requestBrowserPermission = async () => {
-    if (typeof Notification === "undefined") {
-      toast.error("Browser notifications are not supported");
+    if (!hasNotifAPI) {
+      toast.error("Browser notifications are not supported on this device");
       return;
     }
-    const result = await Notification.requestPermission();
-    setBrowserPermission(result);
-    if (result === "granted") {
-      await update("push_notifications", true);
-      toast.success("Browser notifications enabled");
-      new Notification("FocusFlow", { body: "Notifications are now enabled! 🎉" });
-    } else {
-      toast.error("Permission denied. You can enable it in browser settings.");
+    try {
+      const result = await window.Notification.requestPermission();
+      setBrowserPermission(result);
+      if (result === "granted") {
+        await update("push_notifications", true);
+        toast.success("Browser notifications enabled");
+        try { new window.Notification("FocusFlow", { body: "Notifications are now enabled! 🎉" }); } catch {}
+      } else {
+        toast.error("Permission denied. You can enable it in browser settings.");
+      }
+    } catch {
+      toast.error("Browser notifications are not supported on this device");
     }
   };
 
