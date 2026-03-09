@@ -80,28 +80,27 @@ const DailyProgressRing = ({
   return (
     <div className="flex flex-col items-center gap-5 py-3">
       {/* Progress Ring */}
-      <div className="relative w-[120px] h-[120px]">
-        {/* Background glow */}
+      <div className="relative w-[108px] h-[108px]">
         {pct > 0 && (
           <motion.div
-            className={cn("absolute inset-[-12px] rounded-full blur-2xl", glowColor)}
+            className={cn("absolute inset-[-8px] rounded-full blur-xl", glowColor)}
             initial={{ opacity: 0 }}
-            animate={{ opacity: pct === 100 ? 0.6 : 0.3 }}
+            animate={{ opacity: pct === 100 ? 0.5 : 0.25 }}
             transition={{ delay: 0.5, duration: 0.6 }}
           />
         )}
-        <svg width="120" height="120" viewBox="0 0 120 120" className="-rotate-90 relative z-10">
+        <svg width="108" height="108" viewBox="0 0 108 108" className="-rotate-90 relative z-10">
           <circle
-            cx="60" cy="60" r={radius}
+            cx="54" cy="54" r={radius}
             fill="none"
             stroke="hsl(var(--muted))"
             strokeWidth={stroke}
           />
           <motion.circle
-            cx="60" cy="60" r={radius}
+            cx="54" cy="54" r={radius}
             fill="none"
             stroke={ringColor}
-            strokeWidth={stroke + 1}
+            strokeWidth={stroke}
             strokeLinecap="round"
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
@@ -112,8 +111,8 @@ const DailyProgressRing = ({
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
           <motion.span
             className={cn(
-              "text-[28px] font-extrabold tracking-tight leading-none",
-              pct === 100 && "text-success"
+              "text-[24px] font-bold tracking-tight leading-none",
+              pct === 100 ? "text-success" : "text-foreground"
             )}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -121,7 +120,10 @@ const DailyProgressRing = ({
           >
             {pct}%
           </motion.span>
-          <span className="text-[11px] text-muted-foreground font-medium mt-0.5">
+          <span className={cn(
+            "text-[11px] font-medium mt-1",
+            pct === 100 ? "text-success/70" : "text-muted-foreground"
+          )}>
             {completed}/{total}
           </span>
         </div>
