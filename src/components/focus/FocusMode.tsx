@@ -6,7 +6,7 @@ import {
   Clock, Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import AmbientSoundsSection from "@/components/focus/AmbientSounds";
+
 import { Task } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { useTaskMutations } from "@/hooks/use-tasks";
