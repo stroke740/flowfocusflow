@@ -69,7 +69,9 @@ const DailyProgressRing = ({
         (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
       ).length;
     }, 0);
-    return Math.round((totalDone / 7) * 100);
+    // Return average tasks per day (rounded to 1 decimal)
+    const avg = totalDone / 7;
+    return avg >= 1 ? avg.toFixed(0) : avg.toFixed(1);
   }, [completedTasks]);
 
   return (
@@ -122,19 +124,19 @@ const DailyProgressRing = ({
       {/* Stat Cards Row */}
       <div className="grid grid-cols-3 gap-2 w-full">
         <StatPill
-          icon={<Flame size={13} className="text-warning" />}
+          icon={<Flame size={14} className="text-warning" />}
           value={`${streak}d`}
           label="STREAK"
           delay={0.1}
         />
         <StatPill
-          icon={<TrendingUp size={13} className="text-primary" />}
-          value={`${weeklyAvg}%`}
-          label="WEEKLY"
+          icon={<TrendingUp size={14} className="text-success" />}
+          value={weeklyAvg}
+          label="AVG/DAY"
           delay={0.2}
         />
         <StatPill
-          icon={<Trophy size={13} className="text-warning" />}
+          icon={<Trophy size={14} className="text-warning" />}
           value={`${bestStreak}d`}
           label="BEST"
           delay={0.3}
@@ -186,17 +188,17 @@ const DailyProgressRing = ({
 function StatPill({ icon, value, label, delay = 0 }: { icon: React.ReactNode; value: string; label: string; delay?: number }) {
   return (
     <motion.div
-      className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-3 py-2.5"
+      className="flex items-center gap-2.5 rounded-2xl border border-border/50 bg-card px-3.5 py-3 shadow-soft"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.35 }}
     >
-      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-muted/60 flex items-center justify-center">
+      <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-muted/50 flex items-center justify-center">
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-[13px] font-bold leading-tight tabular-nums">{value}</p>
-        <p className="text-[8px] text-muted-foreground font-semibold tracking-widest leading-tight">{label}</p>
+        <p className="text-[15px] font-bold leading-tight tabular-nums">{value}</p>
+        <p className="text-[9px] text-muted-foreground font-semibold tracking-widest leading-tight mt-0.5">{label}</p>
       </div>
     </motion.div>
   );
