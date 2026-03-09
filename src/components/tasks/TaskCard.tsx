@@ -13,6 +13,8 @@ interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
   completionCount?: number;
+  isSelected?: boolean;
+  onLongPress?: (task: Task) => void;
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
