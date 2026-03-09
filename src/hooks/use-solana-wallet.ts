@@ -85,7 +85,7 @@ export function useSolanaWallet() {
     if (!state.authToken) return;
 
     try {
-      await transact(async (wallet: Web3MobileWallet) => {
+      await transact(async (wallet: MobileWallet) => {
         await wallet.deauthorize({ auth_token: state.authToken! });
       });
     } catch (error) {
