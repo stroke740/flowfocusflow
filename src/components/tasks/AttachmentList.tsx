@@ -41,9 +41,11 @@ export default function AttachmentList({ taskId }: { taskId: string }) {
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const handleDelete = async (att: TaskAttachment) => {
-    await deleteAttachment.mutateAsync({ id: att.id, filePath: att.file_path, taskId });
+  const handleDelete = async (a: TaskAttachment) => {
+    await deleteAttachment.mutateAsync({ id: a.id, filePath: a.file_path, taskId });
   };
+
+  const imageAttachments = attachments.filter(a => a.content_type.startsWith("image/"));
 
   return (
     <div className="space-y-2">
@@ -63,24 +65,39 @@ export default function AttachmentList({ taskId }: { taskId: string }) {
         <input ref={inputRef} type="file" className="hidden" multiple onChange={handleUpload} />
       </div>
 
+      {imageAttachments.length > 0 && (
+        <div className="grid grid-cols-3 gap-1.5">
+          {imageAttachments.map((a) => (
+            <a key={a.id} href={getAttachmentUrl(a.file_path)} target="_blank" rel="noopener noreferrer">
+              <img
+                src={getAttachmentUrl(a.file_path)}
+                alt={a.file_name}
+                className="w-full h-20 object-cover rounded-lg border border-border"
+                loading="lazy"
+              />
+            </a>
+          ))}
+        </div>
+      )}
+
       <AnimatePresence>
-        {attachments.map((att) => (
+        {attachments.map((a) => (
           <motion.div
-            key={att.id}
+            key={a.id}
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
             className="flex items-center gap-2.5 p-2.5 rounded-xl border border-border bg-card group"
           >
             <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-              {getFileIcon(att.content_type)}
+              {getFileIcon(a.content_type)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-medium truncate">{att.file_name}</p>
-              <p className="text-[10px] text-muted-foreground">{formatSize(att.file_size)}</p>
+              <p className="text-[12px] font-medium truncate">{a.file_name}</p>
+              <p className="text-[10px] text-muted-foreground">{formatSize(a.file_size)}</p>
             </div>
             <a
-              href={getAttachmentUrl(att.file_path)}
+              href={getAttachmentUrl(a.file_path)}
               target="_blank"
               rel="noopener noreferrer"
               className="p-1.5 rounded-lg hover:bg-muted transition-colors opacity-0 group-hover:opacity-100"
@@ -89,7 +106,7 @@ export default function AttachmentList({ taskId }: { taskId: string }) {
               <Download size={13} className="text-muted-foreground" />
             </a>
             <button
-              onClick={() => handleDelete(att)}
+              onClick={() => handleDelete(a)}
               className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
             >
               <Trash2 size={13} className="text-destructive" />
@@ -97,21 +114,6 @@ export default function AttachmentList({ taskId }: { taskId: string }) {
           </motion.div>
         ))}
       </AnimatePresence>
-
-      {att.content_type?.startsWith("image/") && attachments.filter(a => a.content_type.startsWith("image/")).length > 0 && (
-        <div className="grid grid-cols-3 gap-1.5 mt-2">
-          {attachments.filter(a => a.content_type.startsWith("image/")).map((att) => (
-            <a key={att.id} href={getAttachmentUrl(att.file_path)} target="_blank" rel="noopener noreferrer">
-              <img
-                src={getAttachmentUrl(att.file_path)}
-                alt={att.file_name}
-                className="w-full h-20 object-cover rounded-lg border border-border"
-                loading="lazy"
-              />
-            </a>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
