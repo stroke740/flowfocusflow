@@ -25,24 +25,78 @@ const DataSection = () => {
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const handleExport = async (format: "json" | "csv" | "both") => {
+  const fetchExportData = async () => {
+    const [tasksRes, projectsRes, tagsRes, notifRes] = await Promise.all([
+      supabase.from("tasks").select("*").eq("user_id", userId!),
+      supabase.from("projects").select("*").eq("user_id", userId!),
+      supabase.from("tags").select("*").eq("user_id", userId!),
+      supabase.from("notifications").select("*").eq("user_id", userId!),
+    ]);
+    return {
+      exported_at: new Date().toISOString(),
+      tasks: tasksRes.data || [],
+      projects: projectsRes.data || [],
+      tags: tagsRes.data || [],
+      notifications: notifRes.data || [],
+    };
+  };
+
+  const handleExport = async (format: "json" | "csv" | "both" | "pdf") => {
     if (!userId) return;
     setExporting(true);
     try {
-      const [tasksRes, projectsRes, tagsRes, notifRes] = await Promise.all([
-        supabase.from("tasks").select("*").eq("user_id", userId),
-        supabase.from("projects").select("*").eq("user_id", userId),
-        supabase.from("tags").select("*").eq("user_id", userId),
-        supabase.from("notifications").select("*").eq("user_id", userId),
-      ]);
+      const exportData = await fetchExportData();
 
-      const exportData = {
-        exported_at: new Date().toISOString(),
-        tasks: tasksRes.data || [],
-        projects: projectsRes.data || [],
-        tags: tagsRes.data || [],
-        notifications: notifRes.data || [],
-      };
+      if (format === "pdf") {
+        const { default: jsPDF } = await import("jspdf");
+        const { default: autoTable } = await import("jspdf-autotable");
+        const { format: fmtDate } = await import("date-fns");
+
+        const doc = new jsPDF();
+        const now = fmtDate(new Date(), "MMM d, yyyy");
+
+        doc.setFontSize(20);
+        doc.setFont("helvetica", "bold");
+        doc.text("FocusFlow — Full Data Export", 14, 20);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100);
+        doc.text(`Generated on ${now}`, 14, 28);
+        doc.text(`${exportData.tasks.length} tasks · ${exportData.projects.length} projects · ${exportData.tags.length} tags`, 14, 34);
+
+        if (exportData.tasks.length > 0) {
+          doc.setFontSize(13);
+          doc.setTextColor(40);
+          doc.text("Tasks", 14, 46);
+          autoTable(doc, {
+            startY: 50,
+            head: [["Title", "Status", "Priority", "Due Date", "Created"]],
+            body: exportData.tasks.map((t: any) => [
+              t.title,
+              t.status,
+              t.priority,
+              t.due_date ? fmtDate(new Date(t.due_date), "MMM d, yyyy") : "—",
+              fmtDate(new Date(t.created_at), "MMM d, yyyy"),
+            ]),
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: [248, 248, 252] },
+            margin: { left: 14, right: 14 },
+          });
+        }
+
+        const pageCount = doc.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(`FocusFlow Export · Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+        }
+
+        doc.save(`focusflow-export-${new Date().toISOString().split("T")[0]}.pdf`);
+        toast.success("PDF exported successfully");
+        return;
+      }
 
       if (format === "json" || format === "both") {
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
