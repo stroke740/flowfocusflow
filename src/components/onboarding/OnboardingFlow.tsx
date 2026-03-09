@@ -160,7 +160,7 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       </div>
 
       {/* Bottom section: buttons */}
-      <div className="flex-shrink-0 pb-12 pt-4 flex flex-col items-center gap-3 px-8">
+      <div className="flex-shrink-0 pb-12 pt-4 flex flex-col items-center gap-3 px-8 relative z-10">
         <motion.button
           onClick={next}
           className={cn(
