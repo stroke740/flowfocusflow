@@ -188,17 +188,17 @@ const DailyProgressRing = ({
 function StatPill({ icon, value, label, delay = 0 }: { icon: React.ReactNode; value: string; label: string; delay?: number }) {
   return (
     <motion.div
-      className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-3 py-2.5"
+      className="flex items-center gap-2.5 rounded-2xl border border-border/50 bg-card px-3.5 py-3 shadow-soft"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.35 }}
     >
-      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-muted/60 flex items-center justify-center">
+      <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-muted/50 flex items-center justify-center">
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-[13px] font-bold leading-tight tabular-nums">{value}</p>
-        <p className="text-[8px] text-muted-foreground font-semibold tracking-widest leading-tight">{label}</p>
+        <p className="text-[15px] font-bold leading-tight tabular-nums">{value}</p>
+        <p className="text-[9px] text-muted-foreground font-semibold tracking-widest leading-tight mt-0.5">{label}</p>
       </div>
     </motion.div>
   );
