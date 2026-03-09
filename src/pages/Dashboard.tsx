@@ -82,6 +82,7 @@ const Dashboard = () => {
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [habitsOpen, setHabitsOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
   const { user } = useAuth();
   const { data: profile } = useProfile();
