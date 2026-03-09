@@ -48,10 +48,8 @@ export function WalletButton() {
         disabled={connecting}
         variant="outline"
         size="sm"
-        className="gap-2"
       >
-        <Wallet className="h-4 w-4" />
-        {connecting ? 'Connecting...' : 'Connect Wallet'}
+        {connecting ? 'Connecting...' : 'Connect'}
       </Button>
     );
   }
