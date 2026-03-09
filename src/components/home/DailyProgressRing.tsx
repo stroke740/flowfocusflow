@@ -20,8 +20,8 @@ const DailyProgressRing = ({
   activeProjectFilter, onProjectFilter, taskCount,
 }: Props) => {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const radius = 38;
-  const stroke = 4.5;
+  const radius = 44;
+  const stroke = 6;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (pct / 100) * circumference;
 
