@@ -61,7 +61,7 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       <AnimatePresence mode="wait">
         <motion.div
           key={`bg-${step}`}
-          className={cn("absolute inset-0 bg-gradient-to-b opacity-60", current.gradient)}
+          className={cn("absolute inset-0 bg-gradient-to-b opacity-60 pointer-events-none", current.gradient)}
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.6 }}
           exit={{ opacity: 0 }}
@@ -71,7 +71,7 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
 
       {/* Floating orbs */}
       <motion.div
-        className="absolute w-[500px] h-[500px] rounded-full bg-primary/[0.03] blur-[100px]"
+        className="absolute w-[500px] h-[500px] rounded-full bg-primary/[0.03] blur-[100px] pointer-events-none"
         animate={{ x: [0, 30, -20, 0], y: [0, -20, 30, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         style={{ top: "-10%", right: "-15%" }}
@@ -160,7 +160,7 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       </div>
 
       {/* Bottom section: buttons */}
-      <div className="flex-shrink-0 pb-12 pt-4 flex flex-col items-center gap-3 px-8">
+      <div className="flex-shrink-0 pb-12 pt-4 flex flex-col items-center gap-3 px-8 relative z-10">
         <motion.button
           onClick={next}
           className={cn(
