@@ -106,7 +106,7 @@ export function useSolanaWallet() {
       throw new Error('Wallet not connected');
     }
 
-    const signedMessage = await transact(async (wallet: Web3MobileWallet) => {
+    const signedMessage = await transact(async (wallet: MobileWallet) => {
       await wallet.reauthorize({
         auth_token: state.authToken!,
         identity: APP_IDENTITY,
