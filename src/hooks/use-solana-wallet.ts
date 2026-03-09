@@ -1,6 +1,12 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Connection, PublicKey, Transaction, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import bs58 from 'bs58';
+
+let bs58: any;
+try {
+  bs58 = require('bs58');
+} catch {
+  bs58 = { encode: (b: Uint8Array) => '', decode: (s: string) => new Uint8Array() };
+}
 
 const APP_IDENTITY = {
   name: 'FlowFocus',
@@ -71,8 +77,8 @@ export function useSolanaWallet() {
   // Check if MWA is available (native Android app)
   const isMwaAvailable = useCallback(async () => {
     try {
-      const { transact } = await import('@solana-mobile/mobile-wallet-adapter-protocol');
-      return typeof transact === 'function';
+      const mwa = await import('@solana-mobile/mobile-wallet-adapter-protocol');
+      return typeof mwa?.transact === 'function';
     } catch {
       return false;
     }
