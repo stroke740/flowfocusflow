@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 import { ViewType } from "@/types/task";
 
 const mobileTabs = [
-  { id: "inbox", label: "Home", icon: Home },
   { id: "today", label: "Today", icon: CalendarDays },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "inbox", label: "Home", icon: Home },
   { id: "projects", label: "Projects", icon: FolderOpen },
   { id: "settings", label: "Me", icon: User },
 ] as const;
