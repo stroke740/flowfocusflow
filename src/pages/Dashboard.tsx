@@ -347,6 +347,7 @@ const Dashboard = () => {
                 {view === "analytics" && <AnalyticsView activeTasks={activeTasks} completedTasks={completedTasks} />}
                 {view === "calendar" && <CalendarView tasks={activeTasks} onEditTask={handleSelectTask} />}
                 {view === "matrix" && <MatrixView tasks={activeTasks} onEditTask={handleSelectTask} />}
+                {view === "smart" && <SmartListsView tasks={activeTasks} onEditTask={handleSelectTask} />}
                 {view === "project" && selectedProject && (
                   <ProjectView
                     project={selectedProject}
@@ -363,6 +364,17 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedCount={selectedTaskIds.size}
+        onComplete={handleBulkComplete}
+        onDelete={handleBulkDelete}
+        onSetPriority={handleBulkPriority}
+        onMoveToProject={handleBulkMoveProject}
+        onClear={() => setSelectedTaskIds(new Set())}
+        projects={projects}
+      />
 
       {/* Task Detail Sheet */}
       <Sheet open={!!editingTask} onOpenChange={(open) => { if (!open) setEditingTask(null); }}>
