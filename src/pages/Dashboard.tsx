@@ -18,8 +18,8 @@ import {
   Home, Sun, Calendar, Grid3X3, Layout,
   Sparkles, Download, BarChart2, ListFilter,
 } from "lucide-react";
-import { ViewType, FilterState, DEFAULT_FILTERS, Task } from "@/types/task";
-import { useTasks, useTags } from "@/hooks/use-tasks";
+import { ViewType, FilterState, DEFAULT_FILTERS, Task, TaskPriority } from "@/types/task";
+import { useTasks, useTags, useTaskMutations } from "@/hooks/use-tasks";
 import { useProjects, useProjectTaskCounts, useProjectMutations, Project } from "@/hooks/use-projects";
 import { useFilteredTasks } from "@/hooks/use-filtered-tasks";
 import AddTaskInput from "@/components/tasks/AddTaskInput";
