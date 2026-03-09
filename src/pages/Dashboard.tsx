@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useApplyPreferences } from "@/hooks/use-apply-preferences";
 import { useQueryClient } from "@tanstack/react-query";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
 import SplashScreen from "@/components/splash/SplashScreen";
