@@ -268,7 +268,7 @@ const Dashboard = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35 }}
                   >
-                    {view === "inbox" ? getGreeting() : currentTitle}
+                    {currentTitle}
                   </motion.h1>
                   {view === "inbox" && (
                     <motion.p
