@@ -169,19 +169,26 @@ const DataSection = () => {
         <p className="text-xs text-muted-foreground">
           Download all your tasks, projects, tags, and notifications.
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <Button variant="outline" onClick={() => handleExport("json")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
             <FileJson size={18} className="text-primary flex-shrink-0" />
             <div className="text-left">
               <p className="text-xs font-medium">JSON</p>
-              <p className="text-[10px] text-muted-foreground">Full data backup</p>
+              <p className="text-[10px] text-muted-foreground">Full backup</p>
             </div>
           </Button>
           <Button variant="outline" onClick={() => handleExport("csv")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
             <FileSpreadsheet size={18} className="text-success flex-shrink-0" />
             <div className="text-left">
               <p className="text-xs font-medium">CSV</p>
-              <p className="text-[10px] text-muted-foreground">Spreadsheet format</p>
+              <p className="text-[10px] text-muted-foreground">Spreadsheet</p>
+            </div>
+          </Button>
+          <Button variant="outline" onClick={() => handleExport("pdf")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
+            <FileDown size={18} className="text-destructive flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-xs font-medium">PDF</p>
+              <p className="text-[10px] text-muted-foreground">Report</p>
             </div>
           </Button>
           <Button variant="outline" onClick={() => handleExport("both")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
@@ -191,8 +198,8 @@ const DataSection = () => {
               <HardDriveDownload size={18} className="text-accent flex-shrink-0" />
             )}
             <div className="text-left">
-              <p className="text-xs font-medium">Both</p>
-              <p className="text-[10px] text-muted-foreground">JSON + CSV</p>
+              <p className="text-xs font-medium">All</p>
+              <p className="text-[10px] text-muted-foreground">JSON+CSV</p>
             </div>
           </Button>
         </div>
