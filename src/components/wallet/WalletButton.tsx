@@ -43,25 +43,22 @@ export function WalletButton() {
 
   if (!connected) {
     return (
-      <Button 
-        onClick={handleConnect} 
+      <button
+        onClick={handleConnect}
         disabled={connecting}
-        variant="outline"
-        size="sm"
-        className="min-w-[100px]"
+        className="w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
       >
-        {connecting ? 'Connecting...' : 'Connect'}
-      </Button>
+        <Wallet size={16} strokeWidth={1.8} />
+      </button>
     );
   }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 min-w-[100px]">
-          {truncateAddress(account?.address || '')}
-          <ChevronDown className="h-3 w-3" />
-        </Button>
+        <button className="w-9 h-9 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+          <Wallet size={16} strokeWidth={1.8} />
+        </button>
       </SheetTrigger>
       <SheetContent side="bottom" className="rounded-t-xl">
         <SheetHeader>
