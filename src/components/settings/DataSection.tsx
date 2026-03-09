@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Download, Trash2, AlertTriangle, Loader2, FileJson, FileSpreadsheet, HardDriveDownload } from "lucide-react";
+import { Download, Trash2, AlertTriangle, Loader2, FileJson, FileSpreadsheet, HardDriveDownload, FileDown } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
