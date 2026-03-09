@@ -48,6 +48,7 @@ export function WalletButton() {
         disabled={connecting}
         variant="outline"
         size="sm"
+        className="min-w-[100px]"
       >
         {connecting ? 'Connecting...' : 'Connect'}
       </Button>
