@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { format, subDays, isAfter, isSameDay, startOfDay, eachDayOfInterval, getDay, subWeeks, startOfWeek } from "date-fns";
+import { format, subDays, isAfter, isSameDay, startOfDay, eachDayOfInterval, subWeeks, startOfWeek, differenceInDays } from "date-fns";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid, BarChart, Bar,
+  CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
 } from "recharts";
-import { Flame, Target, Trophy, TrendingUp, CheckCircle2, Zap, Calendar } from "lucide-react";
+import { Flame, Target, Trophy, TrendingUp, CheckCircle2, Zap, Calendar, Clock, BarChart3, PieChart as PieIcon, Activity } from "lucide-react";
 import { Task } from "@/types/task";
 
 interface AnalyticsViewProps {
@@ -33,7 +33,6 @@ const AnalyticsView = ({ activeTasks, completedTasks }: AnalyticsViewProps) => {
       (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
     );
     if (!todayDone) day = subDays(day, 1);
-
     while (true) {
       const has = completedTasks.some(
         (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
@@ -120,11 +119,82 @@ const AnalyticsView = ({ activeTasks, completedTasks }: AnalyticsViewProps) => {
     ];
   }, [completedTasks]);
 
+  // Completion rate (last 7 days)
+  const completionRate = useMemo(() => {
+    const totalCreatedLast7 = [...activeTasks, ...completedTasks].filter(
+      (t) => isAfter(new Date(t.created_at), subDays(new Date(), 7))
+    ).length;
+    const completedLast7 = completedTasks.filter(
+      (t) => t.completed_at && isAfter(new Date(t.completed_at), subDays(new Date(), 7))
+    ).length;
+    return totalCreatedLast7 > 0 ? Math.round((completedLast7 / totalCreatedLast7) * 100) : 0;
+  }, [activeTasks, completedTasks]);
+
+  // Average completion time (days)
+  const avgCompletionTime = useMemo(() => {
+    const withBoth = completedTasks.filter((t) => t.completed_at && t.created_at);
+    if (withBoth.length === 0) return "–";
+    const totalDays = withBoth.reduce((sum, t) => {
+      return sum + differenceInDays(new Date(t.completed_at!), new Date(t.created_at));
+    }, 0);
+    const avg = totalDays / withBoth.length;
+    return avg < 1 ? "<1d" : `${avg.toFixed(1)}d`;
+  }, [completedTasks]);
+
+  // Overdue tasks
+  const overdueCount = useMemo(() => {
+    return activeTasks.filter(
+      (t) => t.due_date && new Date(t.due_date) < new Date()
+    ).length;
+  }, [activeTasks]);
+
+  // Weekly completion comparison (last 4 weeks)
+  const weeklyComparison = useMemo(() => {
+    return Array.from({ length: 4 }).map((_, i) => {
+      const weekEnd = subWeeks(new Date(), i);
+      const weekStart = subDays(weekEnd, 6);
+      const count = completedTasks.filter(
+        (t) => t.completed_at &&
+          isAfter(new Date(t.completed_at), weekStart) &&
+          !isAfter(new Date(t.completed_at), weekEnd)
+      ).length;
+      return {
+        week: i === 0 ? "This wk" : i === 1 ? "Last wk" : `${i}wk ago`,
+        completed: count,
+      };
+    }).reverse();
+  }, [completedTasks]);
+
+  // Task status pie
+  const statusPie = useMemo(() => {
+    const active = activeTasks.length;
+    const completed = completedTasks.length;
+    return [
+      { name: "Active", value: active, fill: "hsl(var(--primary))" },
+      { name: "Completed", value: completed, fill: "hsl(var(--success))" },
+    ].filter((d) => d.value > 0);
+  }, [activeTasks, completedTasks]);
+
+  // Day-of-week productivity
+  const dayOfWeekData = useMemo(() => {
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const counts = Array(7).fill(0);
+    completedTasks.forEach((t) => {
+      if (t.completed_at) {
+        const day = new Date(t.completed_at).getDay();
+        counts[day]++;
+      }
+    });
+    return dayNames.map((name, i) => ({ day: name, tasks: counts[i] }));
+  }, [completedTasks]);
+
   const dayLabels = ["M", "T", "W", "T", "F", "S", "S"];
+
+  const cardClass = "rounded-2xl border border-border bg-card p-5";
 
   return (
     <div className="space-y-5">
-      {/* Stat cards */}
+      {/* Stat cards - row 1 */}
       <div className="grid grid-cols-2 gap-3">
         {[
           { icon: Flame, color: "text-warning", bg: "bg-warning/10", label: "Current Streak", value: `${streak}d`, sub: streak > 0 ? "🔥 Keep it up!" : "Start today" },
@@ -151,19 +221,41 @@ const AnalyticsView = ({ activeTasks, completedTasks }: AnalyticsViewProps) => {
         ))}
       </div>
 
+      {/* Stat cards - row 2 (new) */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { icon: Target, color: "text-success", bg: "bg-success/10", label: "Completion Rate", value: `${completionRate}%` },
+          { icon: Clock, color: "text-primary", bg: "bg-primary/10", label: "Avg Time", value: avgCompletionTime },
+          { icon: Zap, color: "text-destructive", bg: "bg-destructive/10", label: "Overdue", value: String(overdueCount) },
+        ].map((stat, i) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 + i * 0.06, duration: 0.35 }}
+            className="rounded-2xl border border-border bg-card p-3.5 text-center"
+          >
+            <div className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center mx-auto mb-2`}>
+              <stat.icon size={16} className={stat.color} />
+            </div>
+            <p className="text-xl font-bold tracking-tight">{stat.value}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
+          </motion.div>
+        ))}
+      </div>
+
       {/* Activity heatmap */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-        className="rounded-2xl border border-border bg-card p-5"
+        transition={{ delay: 0.3 }}
+        className={cardClass}
       >
         <div className="flex items-center gap-2 mb-4">
           <Calendar size={15} className="text-muted-foreground" />
           <h3 className="text-sm font-semibold">Activity (7 weeks)</h3>
         </div>
         <div className="flex gap-1.5">
-          {/* Day labels */}
           <div className="flex flex-col gap-1 mr-1">
             {dayLabels.map((d, i) => (
               <div key={i} className="w-4 h-4 flex items-center justify-center text-[8px] text-muted-foreground/60 font-medium">
@@ -171,7 +263,6 @@ const AnalyticsView = ({ activeTasks, completedTasks }: AnalyticsViewProps) => {
               </div>
             ))}
           </div>
-          {/* Heatmap grid */}
           {Array.from({ length: 7 }).map((_, w) => (
             <div key={w} className="flex flex-col gap-1 flex-1">
               {Array.from({ length: 7 }).map((_, d) => {
@@ -210,12 +301,97 @@ const AnalyticsView = ({ activeTasks, completedTasks }: AnalyticsViewProps) => {
         </div>
       </motion.div>
 
+      {/* Task status pie + Day of week side by side */}
+      <div className="grid grid-cols-2 gap-3">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className={cardClass}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <PieIcon size={14} className="text-muted-foreground" />
+            <h3 className="text-[13px] font-semibold">Status</h3>
+          </div>
+          <div className="h-28">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusPie}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={25}
+                  outerRadius={42}
+                  paddingAngle={3}
+                  dataKey="value"
+                  strokeWidth={0}
+                >
+                  {statusPie.map((entry, i) => (
+                    <Cell key={i} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "0.75rem",
+                    fontSize: 11,
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex justify-center gap-4 mt-1">
+            {statusPie.map((s) => (
+              <div key={s.name} className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.fill }} />
+                <span className="text-[10px] text-muted-foreground">{s.name} ({s.value})</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38 }}
+          className={cardClass}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Activity size={14} className="text-muted-foreground" />
+            <h3 className="text-[13px] font-semibold">By Day</h3>
+          </div>
+          <div className="h-32">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dayOfWeekData}>
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis hide allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{
+                    background: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "0.75rem",
+                    fontSize: 11,
+                  }}
+                />
+                <Bar dataKey="tasks" fill="hsl(var(--primary) / 0.7)" radius={[4, 4, 0, 0]} barSize={16} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+      </div>
+
       {/* Completion trend */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="rounded-2xl border border-border bg-card p-5"
+        transition={{ delay: 0.4 }}
+        className={cardClass}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold">30-Day Trend</h3>
@@ -261,12 +437,60 @@ const AnalyticsView = ({ activeTasks, completedTasks }: AnalyticsViewProps) => {
         </div>
       </motion.div>
 
+      {/* Weekly comparison */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45 }}
+        className={cardClass}
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <BarChart3 size={15} className="text-muted-foreground" />
+          <h3 className="text-sm font-semibold">Weekly Comparison</h3>
+        </div>
+        <div className="h-36">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={weeklyComparison}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="week"
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                tickLine={false}
+                axisLine={false}
+                allowDecimals={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "0.75rem",
+                  fontSize: 12,
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="completed"
+                stroke="hsl(var(--primary))"
+                strokeWidth={2.5}
+                dot={{ r: 4, fill: "hsl(var(--primary))" }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </motion.div>
+
       {/* Priority breakdown */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-        className="rounded-2xl border border-border bg-card p-5"
+        transition={{ delay: 0.5 }}
+        className={cardClass}
       >
         <h3 className="text-sm font-semibold mb-4">Priority Breakdown (7 days)</h3>
         <div className="h-36">
@@ -309,8 +533,8 @@ const AnalyticsView = ({ activeTasks, completedTasks }: AnalyticsViewProps) => {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="rounded-2xl border border-border bg-card p-5"
+        transition={{ delay: 0.55 }}
+        className={cardClass}
       >
         <h3 className="text-sm font-semibold mb-3">Active Tasks</h3>
         <div className="grid grid-cols-3 gap-4 text-center">

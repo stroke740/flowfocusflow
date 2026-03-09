@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Download, Trash2, AlertTriangle, Loader2, FileJson, FileSpreadsheet, HardDriveDownload } from "lucide-react";
+import { Download, Trash2, AlertTriangle, Loader2, FileJson, FileSpreadsheet, HardDriveDownload, FileDown } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,24 +25,78 @@ const DataSection = () => {
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const handleExport = async (format: "json" | "csv" | "both") => {
+  const fetchExportData = async () => {
+    const [tasksRes, projectsRes, tagsRes, notifRes] = await Promise.all([
+      supabase.from("tasks").select("*").eq("user_id", userId!),
+      supabase.from("projects").select("*").eq("user_id", userId!),
+      supabase.from("tags").select("*").eq("user_id", userId!),
+      supabase.from("notifications").select("*").eq("user_id", userId!),
+    ]);
+    return {
+      exported_at: new Date().toISOString(),
+      tasks: tasksRes.data || [],
+      projects: projectsRes.data || [],
+      tags: tagsRes.data || [],
+      notifications: notifRes.data || [],
+    };
+  };
+
+  const handleExport = async (format: "json" | "csv" | "both" | "pdf") => {
     if (!userId) return;
     setExporting(true);
     try {
-      const [tasksRes, projectsRes, tagsRes, notifRes] = await Promise.all([
-        supabase.from("tasks").select("*").eq("user_id", userId),
-        supabase.from("projects").select("*").eq("user_id", userId),
-        supabase.from("tags").select("*").eq("user_id", userId),
-        supabase.from("notifications").select("*").eq("user_id", userId),
-      ]);
+      const exportData = await fetchExportData();
 
-      const exportData = {
-        exported_at: new Date().toISOString(),
-        tasks: tasksRes.data || [],
-        projects: projectsRes.data || [],
-        tags: tagsRes.data || [],
-        notifications: notifRes.data || [],
-      };
+      if (format === "pdf") {
+        const { default: jsPDF } = await import("jspdf");
+        const { default: autoTable } = await import("jspdf-autotable");
+        const { format: fmtDate } = await import("date-fns");
+
+        const doc = new jsPDF();
+        const now = fmtDate(new Date(), "MMM d, yyyy");
+
+        doc.setFontSize(20);
+        doc.setFont("helvetica", "bold");
+        doc.text("FocusFlow — Full Data Export", 14, 20);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100);
+        doc.text(`Generated on ${now}`, 14, 28);
+        doc.text(`${exportData.tasks.length} tasks · ${exportData.projects.length} projects · ${exportData.tags.length} tags`, 14, 34);
+
+        if (exportData.tasks.length > 0) {
+          doc.setFontSize(13);
+          doc.setTextColor(40);
+          doc.text("Tasks", 14, 46);
+          autoTable(doc, {
+            startY: 50,
+            head: [["Title", "Status", "Priority", "Due Date", "Created"]],
+            body: exportData.tasks.map((t: any) => [
+              t.title,
+              t.status,
+              t.priority,
+              t.due_date ? fmtDate(new Date(t.due_date), "MMM d, yyyy") : "—",
+              fmtDate(new Date(t.created_at), "MMM d, yyyy"),
+            ]),
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: [248, 248, 252] },
+            margin: { left: 14, right: 14 },
+          });
+        }
+
+        const pageCount = doc.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(`FocusFlow Export · Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+        }
+
+        doc.save(`focusflow-export-${new Date().toISOString().split("T")[0]}.pdf`);
+        toast.success("PDF exported successfully");
+        return;
+      }
 
       if (format === "json" || format === "both") {
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
@@ -115,19 +169,26 @@ const DataSection = () => {
         <p className="text-xs text-muted-foreground">
           Download all your tasks, projects, tags, and notifications.
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <Button variant="outline" onClick={() => handleExport("json")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
             <FileJson size={18} className="text-primary flex-shrink-0" />
             <div className="text-left">
               <p className="text-xs font-medium">JSON</p>
-              <p className="text-[10px] text-muted-foreground">Full data backup</p>
+              <p className="text-[10px] text-muted-foreground">Full backup</p>
             </div>
           </Button>
           <Button variant="outline" onClick={() => handleExport("csv")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
             <FileSpreadsheet size={18} className="text-success flex-shrink-0" />
             <div className="text-left">
               <p className="text-xs font-medium">CSV</p>
-              <p className="text-[10px] text-muted-foreground">Spreadsheet format</p>
+              <p className="text-[10px] text-muted-foreground">Spreadsheet</p>
+            </div>
+          </Button>
+          <Button variant="outline" onClick={() => handleExport("pdf")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
+            <FileDown size={18} className="text-destructive flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-xs font-medium">PDF</p>
+              <p className="text-[10px] text-muted-foreground">Report</p>
             </div>
           </Button>
           <Button variant="outline" onClick={() => handleExport("both")} disabled={exporting} className="gap-2 rounded-xl justify-start h-auto py-3 px-4">
@@ -137,8 +198,8 @@ const DataSection = () => {
               <HardDriveDownload size={18} className="text-accent flex-shrink-0" />
             )}
             <div className="text-left">
-              <p className="text-xs font-medium">Both</p>
-              <p className="text-[10px] text-muted-foreground">JSON + CSV</p>
+              <p className="text-xs font-medium">All</p>
+              <p className="text-[10px] text-muted-foreground">JSON+CSV</p>
             </div>
           </Button>
         </div>
