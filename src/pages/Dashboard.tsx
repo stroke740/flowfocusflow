@@ -53,6 +53,7 @@ import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 type ExtendedView = ViewType | "project" | "calendar" | "matrix";
 
 const Dashboard = () => {
+  useApplyPreferences();
   const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem("focusflow_splash_done"));
   const [view, setView] = useState<ExtendedView>("inbox");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
