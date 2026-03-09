@@ -14,6 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import AddTaskInput from "./AddTaskInput";
+import AttachmentList from "./AttachmentList";
 import RecurrencePicker, { RecurrenceRule, parseRecurrenceRule, serializeRecurrenceRule } from "./RecurrencePicker";
 
 interface TaskDetailPanelProps {
