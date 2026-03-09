@@ -105,9 +105,13 @@ const TaskCard = ({ task, onEdit, completionCount = 0, isSelected = false, onLon
       className={cn(
         "group relative flex items-center gap-3 p-3.5 rounded-2xl border border-border/60 bg-card cursor-pointer mb-2",
         "hover:border-border hover:shadow-sm transition-all duration-200",
-        isCompleted && "opacity-60"
+        isCompleted && "opacity-60",
+        isSelected && "ring-2 ring-primary border-primary/40 bg-primary/5"
       )}
-      onClick={() => onEdit(task)}
+      onClick={() => isSelected || onLongPress ? onLongPress?.(task) : onEdit(task)}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       {/* Priority icon */}
       <div
