@@ -9,7 +9,7 @@ const APP_IDENTITY = {
   icon: 'favicon.ico',
 };
 
-const CLUSTER = 'devnet';
+const CLUSTER = 'mainnet-beta';
 
 interface WalletAccount {
   address: string;
