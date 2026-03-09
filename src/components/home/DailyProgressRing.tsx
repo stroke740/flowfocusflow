@@ -69,7 +69,9 @@ const DailyProgressRing = ({
         (t) => t.completed_at && isSameDay(new Date(t.completed_at), day)
       ).length;
     }, 0);
-    return Math.round((totalDone / 7) * 100);
+    // Return average tasks per day (rounded to 1 decimal)
+    const avg = totalDone / 7;
+    return avg >= 1 ? avg.toFixed(0) : avg.toFixed(1);
   }, [completedTasks]);
 
   return (
