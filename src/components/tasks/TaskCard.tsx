@@ -43,7 +43,7 @@ function fireConfetti() {
   });
 }
 
-const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
+const TaskCard = ({ task, onEdit, completionCount = 0, isSelected = false, onLongPress }: TaskCardProps) => {
   const { completeTask, uncompleteTask, deleteTask } = useTaskMutations();
   const { toast } = useToast();
   const [completing, setCompleting] = useState(false);
@@ -52,6 +52,20 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
   const subtasksDone = task.subtasks?.filter((s) => s.status === "completed").length || 0;
   const subtasksTotal = task.subtasks?.length || 0;
   const hasRecurrence = !!(task as any).recurrence_rule;
+
+  const longPressTimer = useRef<NodeJS.Timeout>();
+
+  const handlePointerDown = () => {
+    if (!onLongPress) return;
+    longPressTimer.current = setTimeout(() => {
+      onLongPress(task);
+      if (navigator.vibrate) navigator.vibrate(30);
+    }, 500);
+  };
+
+  const handlePointerUp = () => {
+    clearTimeout(longPressTimer.current);
+  };
 
   const handleComplete = async () => {
     if (isCompleted) {
