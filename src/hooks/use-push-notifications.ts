@@ -1,22 +1,42 @@
 import { useEffect, useCallback } from "react";
 import { useTasks } from "./use-tasks";
 import { usePreferences } from "./use-preferences";
-import { isToday, isBefore, startOfDay, differenceInMinutes } from "date-fns";
+import { isBefore, startOfDay, differenceInMinutes } from "date-fns";
+
+// Safe check for Notification API
+const hasNotificationAPI = typeof window !== "undefined" && "Notification" in window;
+
+function getNotificationPermission(): NotificationPermission | "unsupported" {
+  if (!hasNotificationAPI) return "unsupported";
+  try {
+    return Notification.permission;
+  } catch {
+    return "unsupported";
+  }
+}
 
 export function usePushNotifications() {
   const { data: prefs } = usePreferences();
   const { data: tasks = [] } = useTasks("active");
 
   const requestPermission = useCallback(async () => {
-    if (!("Notification" in window)) return false;
-    if (Notification.permission === "granted") return true;
-    if (Notification.permission === "denied") return false;
-    const result = await Notification.requestPermission();
-    return result === "granted";
+    if (!hasNotificationAPI) return false;
+    try {
+      const permission = getNotificationPermission();
+      if (permission === "granted") return true;
+      if (permission === "denied" || permission === "unsupported") return false;
+      const result = await Notification.requestPermission();
+      return result === "granted";
+    } catch {
+      return false;
+    }
   }, []);
 
   const sendNotification = useCallback((title: string, body?: string) => {
-    if (Notification.permission !== "granted") return;
+    if (!hasNotificationAPI) return;
+    const permission = getNotificationPermission();
+    if (permission !== "granted") return;
+    
     try {
       new Notification(title, {
         body,
@@ -25,7 +45,7 @@ export function usePushNotifications() {
         silent: false,
       });
     } catch {
-      // SW fallback
+      // SW fallback for mobile
       navigator.serviceWorker?.ready?.then((reg) => {
         reg.showNotification(title, { body, icon: "/favicon.ico" });
       }).catch(() => {});
@@ -35,7 +55,10 @@ export function usePushNotifications() {
   // Check for overdue tasks and send reminders
   useEffect(() => {
     if (!prefs?.push_notifications || !prefs?.overdue_alerts) return;
-    if (Notification.permission !== "granted") return;
+    if (!hasNotificationAPI) return;
+    
+    const permission = getNotificationPermission();
+    if (permission !== "granted") return;
 
     const interval = setInterval(() => {
       const now = new Date();
@@ -68,7 +91,7 @@ export function usePushNotifications() {
         );
         sessionStorage.setItem("overdue_notif_sent", "1");
       }
-    }, 60_000); // Check every minute
+    }, 60_000);
 
     return () => clearInterval(interval);
   }, [tasks, prefs, sendNotification]);
