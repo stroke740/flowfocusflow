@@ -74,48 +74,54 @@ const DailyProgressRing = ({
     return avg >= 1 ? avg.toFixed(0) : avg.toFixed(1);
   }, [completedTasks]);
 
+  const ringColor = pct === 100 ? "hsl(var(--success))" : "hsl(var(--primary))";
+  const glowColor = pct === 100 ? "bg-success/10" : "bg-primary/8";
+
   return (
     <div className="flex flex-col items-center gap-5 py-3">
-      {/* Progress Ring with subtle glow */}
-      <div className="relative w-[96px] h-[96px]">
+      {/* Progress Ring */}
+      <div className="relative w-[120px] h-[120px]">
         {/* Background glow */}
         {pct > 0 && (
           <motion.div
-            className="absolute inset-[-8px] rounded-full bg-primary/8 blur-xl"
+            className={cn("absolute inset-[-12px] rounded-full blur-2xl", glowColor)}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: pct === 100 ? 0.6 : 0.3 }}
             transition={{ delay: 0.5, duration: 0.6 }}
           />
         )}
-        <svg width="96" height="96" viewBox="0 0 96 96" className="-rotate-90 relative z-10">
+        <svg width="120" height="120" viewBox="0 0 120 120" className="-rotate-90 relative z-10">
           <circle
-            cx="48" cy="48" r={radius}
+            cx="60" cy="60" r={radius}
             fill="none"
             stroke="hsl(var(--muted))"
             strokeWidth={stroke}
           />
           <motion.circle
-            cx="48" cy="48" r={radius}
+            cx="60" cy="60" r={radius}
             fill="none"
-            stroke="hsl(var(--primary))"
-            strokeWidth={stroke}
+            stroke={ringColor}
+            strokeWidth={stroke + 1}
             strokeLinecap="round"
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset: offset }}
-            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
           <motion.span
-            className="text-[22px] font-bold tracking-tight"
+            className={cn(
+              "text-[28px] font-extrabold tracking-tight leading-none",
+              pct === 100 && "text-success"
+            )}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 0.4 }}
           >
             {pct}%
           </motion.span>
-          <span className="text-[10px] text-muted-foreground font-medium">
+          <span className="text-[11px] text-muted-foreground font-medium mt-0.5">
             {completed}/{total}
           </span>
         </div>
