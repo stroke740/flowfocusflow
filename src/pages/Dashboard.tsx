@@ -63,12 +63,6 @@ const mobileTabs: { id: string; label: string; icon: typeof Home }[] = [
   { id: "settings", label: "Me", icon: User },
 ];
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
 
 const Dashboard = () => {
   const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem("focusflow_splash_done"));
