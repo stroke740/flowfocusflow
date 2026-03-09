@@ -207,6 +207,7 @@ const Dashboard = () => {
     view === "settings" ? ""
     : view === "calendar" ? "Calendar"
     : view === "matrix" ? "Priority Matrix"
+    : view === "smart" ? "Smart Lists"
     : view === "project" && selectedProject ? selectedProject.name
     : view === "inbox" ? "Home"
     : view === "today" ? "Today"
