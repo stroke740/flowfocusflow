@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 import { MoreHorizontal, Trash2, Pencil, Check, Repeat, SkipForward } from "lucide-react";
@@ -13,6 +13,8 @@ interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
   completionCount?: number;
+  isSelected?: boolean;
+  onLongPress?: (task: Task) => void;
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -41,7 +43,7 @@ function fireConfetti() {
   });
 }
 
-const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
+const TaskCard = ({ task, onEdit, completionCount = 0, isSelected = false, onLongPress }: TaskCardProps) => {
   const { completeTask, uncompleteTask, deleteTask } = useTaskMutations();
   const { toast } = useToast();
   const [completing, setCompleting] = useState(false);
@@ -50,6 +52,20 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
   const subtasksDone = task.subtasks?.filter((s) => s.status === "completed").length || 0;
   const subtasksTotal = task.subtasks?.length || 0;
   const hasRecurrence = !!(task as any).recurrence_rule;
+
+  const longPressTimer = useRef<NodeJS.Timeout>();
+
+  const handlePointerDown = () => {
+    if (!onLongPress) return;
+    longPressTimer.current = setTimeout(() => {
+      onLongPress(task);
+      if (navigator.vibrate) navigator.vibrate(30);
+    }, 500);
+  };
+
+  const handlePointerUp = () => {
+    clearTimeout(longPressTimer.current);
+  };
 
   const handleComplete = async () => {
     if (isCompleted) {
@@ -89,9 +105,13 @@ const TaskCard = ({ task, onEdit, completionCount = 0 }: TaskCardProps) => {
       className={cn(
         "group relative flex items-center gap-3 p-3.5 rounded-2xl border border-border/60 bg-card cursor-pointer mb-2",
         "hover:border-border hover:shadow-sm transition-all duration-200",
-        isCompleted && "opacity-60"
+        isCompleted && "opacity-60",
+        isSelected && "ring-2 ring-primary border-primary/40 bg-primary/5"
       )}
-      onClick={() => onEdit(task)}
+      onClick={() => isSelected || onLongPress ? onLongPress?.(task) : onEdit(task)}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       {/* Priority icon */}
       <div

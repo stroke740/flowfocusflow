@@ -14,6 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import AddTaskInput from "./AddTaskInput";
+import AttachmentList from "./AttachmentList";
 import RecurrencePicker, { RecurrenceRule, parseRecurrenceRule, serializeRecurrenceRule } from "./RecurrencePicker";
 
 interface TaskDetailPanelProps {
@@ -479,6 +480,11 @@ const TaskDetailPanel = ({ task, onClose, projects = [], tags: availableTags = [
             </div>
           </motion.div>
         )}
+
+        {/* Attachments */}
+        <div className="border-t border-border pt-4">
+          <AttachmentList taskId={task.id} />
+        </div>
 
         {/* Meta */}
         <div className="text-[11px] text-muted-foreground pt-2 border-t border-border">

@@ -12,12 +12,14 @@ import WeeklyReview from "@/components/planning/WeeklyReview";
 import TaskTemplates from "@/components/tasks/TaskTemplates";
 import HabitTracker from "@/components/habits/HabitTracker";
 import ExportDialog from "@/components/export/ExportDialog";
+import SmartListsView from "@/components/views/SmartListsView";
+import BulkActionsBar from "@/components/tasks/BulkActionsBar";
 import {
   Home, Sun, Calendar, Grid3X3, Layout,
-  Sparkles, Download, BarChart2,
+  Sparkles, Download, BarChart2, ListFilter,
 } from "lucide-react";
-import { ViewType, FilterState, DEFAULT_FILTERS, Task } from "@/types/task";
-import { useTasks, useTags } from "@/hooks/use-tasks";
+import { ViewType, FilterState, DEFAULT_FILTERS, Task, TaskPriority } from "@/types/task";
+import { useTasks, useTags, useTaskMutations } from "@/hooks/use-tasks";
 import { useProjects, useProjectTaskCounts, useProjectMutations, Project } from "@/hooks/use-projects";
 import { useFilteredTasks } from "@/hooks/use-filtered-tasks";
 import AddTaskInput from "@/components/tasks/AddTaskInput";
@@ -50,7 +52,7 @@ import { FloatingActionButton } from "@/components/layout/FloatingActionButton";
 import { ProjectsSheet } from "@/components/layout/ProjectsSheet";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
-type ExtendedView = ViewType | "project" | "calendar" | "matrix";
+type ExtendedView = ViewType | "project" | "calendar" | "matrix" | "smart";
 
 const Dashboard = () => {
   useApplyPreferences();
@@ -80,6 +82,7 @@ const Dashboard = () => {
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [habitsOpen, setHabitsOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
 
   const { user } = useAuth();
   const { data: profile } = useProfile();
@@ -112,6 +115,37 @@ const Dashboard = () => {
   const { data: projects = [] } = useProjects();
   const { data: taskCounts = new Map() } = useProjectTaskCounts();
   const { addProject, updateProject, deleteProject } = useProjectMutations();
+  const { completeTask, deleteTask: deleteTaskMut, updateTask } = useTaskMutations();
+
+  // Bulk action handlers
+  const handleBulkComplete = useCallback(() => {
+    selectedTaskIds.forEach(id => completeTask.mutate(id));
+    setSelectedTaskIds(new Set());
+  }, [selectedTaskIds, completeTask]);
+
+  const handleBulkDelete = useCallback(() => {
+    selectedTaskIds.forEach(id => deleteTaskMut.mutate(id));
+    setSelectedTaskIds(new Set());
+  }, [selectedTaskIds, deleteTaskMut]);
+
+  const handleBulkPriority = useCallback((p: TaskPriority) => {
+    selectedTaskIds.forEach(id => updateTask.mutate({ id, priority: p } as any));
+    setSelectedTaskIds(new Set());
+  }, [selectedTaskIds, updateTask]);
+
+  const handleBulkMoveProject = useCallback((projectId: string | null) => {
+    selectedTaskIds.forEach(id => updateTask.mutate({ id, project_id: projectId } as any));
+    setSelectedTaskIds(new Set());
+  }, [selectedTaskIds, updateTask]);
+
+  const toggleTaskSelection = useCallback((taskId: string) => {
+    setSelectedTaskIds(prev => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  }, []);
 
   const inboxCount = useMemo(() => activeTasks.filter((t) => !t.project_id).length, [activeTasks]);
   const todayTasks = useMemo(
@@ -173,6 +207,7 @@ const Dashboard = () => {
     view === "settings" ? ""
     : view === "calendar" ? "Calendar"
     : view === "matrix" ? "Priority Matrix"
+    : view === "smart" ? "Smart Lists"
     : view === "project" && selectedProject ? selectedProject.name
     : view === "inbox" ? "Home"
     : view === "today" ? "Today"
@@ -280,6 +315,7 @@ const Dashboard = () => {
                         { icon: Sun, label: "Plan Day", action: () => setDailyPlanningOpen(true), color: "text-warning" },
                         { icon: Calendar, label: "Calendar", action: () => switchView("calendar" as ExtendedView), color: "text-primary" },
                         { icon: Grid3X3, label: "Matrix", action: () => switchView("matrix" as ExtendedView), color: "text-destructive" },
+                        { icon: ListFilter, label: "Smart Lists", action: () => switchView("smart" as ExtendedView), color: "text-primary" },
                         { icon: Layout, label: "Templates", action: () => setTemplatesOpen(true), color: "text-accent-foreground" },
                         { icon: Sparkles, label: "Habits", action: () => setHabitsOpen(true), color: "text-success" },
                         { icon: BarChart2, label: "Review", action: () => setWeeklyReviewOpen(true), color: "text-primary" },
@@ -311,6 +347,7 @@ const Dashboard = () => {
                 {view === "analytics" && <AnalyticsView activeTasks={activeTasks} completedTasks={completedTasks} />}
                 {view === "calendar" && <CalendarView tasks={activeTasks} onEditTask={handleSelectTask} />}
                 {view === "matrix" && <MatrixView tasks={activeTasks} onEditTask={handleSelectTask} />}
+                {view === "smart" && <SmartListsView tasks={activeTasks} onEditTask={handleSelectTask} />}
                 {view === "project" && selectedProject && (
                   <ProjectView
                     project={selectedProject}
@@ -327,6 +364,17 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Bulk Actions Bar */}
+      <BulkActionsBar
+        selectedCount={selectedTaskIds.size}
+        onComplete={handleBulkComplete}
+        onDelete={handleBulkDelete}
+        onSetPriority={handleBulkPriority}
+        onMoveToProject={handleBulkMoveProject}
+        onClear={() => setSelectedTaskIds(new Set())}
+        projects={projects}
+      />
 
       {/* Task Detail Sheet */}
       <Sheet open={!!editingTask} onOpenChange={(open) => { if (!open) setEditingTask(null); }}>
