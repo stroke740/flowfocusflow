@@ -315,6 +315,7 @@ const Dashboard = () => {
                         { icon: Sun, label: "Plan Day", action: () => setDailyPlanningOpen(true), color: "text-warning" },
                         { icon: Calendar, label: "Calendar", action: () => switchView("calendar" as ExtendedView), color: "text-primary" },
                         { icon: Grid3X3, label: "Matrix", action: () => switchView("matrix" as ExtendedView), color: "text-destructive" },
+                        { icon: ListFilter, label: "Smart Lists", action: () => switchView("smart" as ExtendedView), color: "text-primary" },
                         { icon: Layout, label: "Templates", action: () => setTemplatesOpen(true), color: "text-accent-foreground" },
                         { icon: Sparkles, label: "Habits", action: () => setHabitsOpen(true), color: "text-success" },
                         { icon: BarChart2, label: "Review", action: () => setWeeklyReviewOpen(true), color: "text-primary" },
