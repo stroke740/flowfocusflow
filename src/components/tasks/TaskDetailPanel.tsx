@@ -481,6 +481,11 @@ const TaskDetailPanel = ({ task, onClose, projects = [], tags: availableTags = [
           </motion.div>
         )}
 
+        {/* Attachments */}
+        <div className="border-t border-border pt-4">
+          <AttachmentList taskId={task.id} />
+        </div>
+
         {/* Meta */}
         <div className="text-[11px] text-muted-foreground pt-2 border-t border-border">
           Created {format(new Date(task.created_at), "MMM d, yyyy 'at' h:mm a")}
