@@ -300,10 +300,6 @@ const FocusMode = ({ open, onClose, task, tasks, onSelectTask }: FocusModeProps)
           {soundOn ? "Sound on" : "Sound off"}
         </button>
 
-        {/* Ambient Sounds */}
-        <div className="w-full max-w-sm mb-6">
-          <AmbientSoundsSection />
-        </div>
 
         {/* Current task */}
         <div className="w-full max-w-sm">
