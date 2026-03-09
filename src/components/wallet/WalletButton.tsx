@@ -120,7 +120,7 @@ export function WalletButton() {
               className="justify-start gap-2"
               onClick={() => {
                 if (account?.address) {
-                  window.open(`https://explorer.solana.com/address/${account.address}?cluster=devnet`, '_blank');
+                  window.open(`https://explorer.solana.com/address/${account.address}`, '_blank');
                 }
               }}
             >
