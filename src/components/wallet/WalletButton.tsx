@@ -48,10 +48,8 @@ export function WalletButton() {
         disabled={connecting}
         variant="outline"
         size="sm"
-        className="gap-2"
       >
-        <Wallet className="h-4 w-4" />
-        {connecting ? 'Connecting...' : 'Connect Wallet'}
+        {connecting ? 'Connecting...' : 'Connect'}
       </Button>
     );
   }
@@ -60,7 +58,6 @@ export function WalletButton() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
-          <Wallet className="h-4 w-4" />
           {truncateAddress(account?.address || '')}
           <ChevronDown className="h-3 w-3" />
         </Button>
