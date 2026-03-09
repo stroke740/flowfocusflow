@@ -7,22 +7,29 @@ interface SplashScreenProps {
 }
 
 const SplashScreen = ({ onComplete }: SplashScreenProps) => {
-  const [phase, setPhase] = useState<"logo" | "fade">("logo");
+  const [phase, setPhase] = useState<"logo" | "fade" | "done">("logo");
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase("fade"), 1400);
-    const t2 = setTimeout(onComplete, 1900);
+    const t2 = setTimeout(() => {
+      setPhase("done");
+      onComplete();
+    }, 1900);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [onComplete]);
 
+  if (phase === "done") return null;
+
   return (
     <AnimatePresence>
-      {phase !== "fade" ? null : null}
       <motion.div
+        key="splash"
         initial={{ opacity: 1 }}
         animate={{ opacity: phase === "fade" ? 0 : 1 }}
+        exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
-        className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center"
+        className="fixed inset-0 z-[100] bg-background flex flex-col items-center justify-center pointer-events-auto"
+        style={{ pointerEvents: phase === "fade" ? "none" : "auto" }}
       >
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
