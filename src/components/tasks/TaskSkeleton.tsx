@@ -1,8 +1,7 @@
-import { forwardRef } from "react";
 import { motion } from "framer-motion";
 
-const TaskSkeleton = forwardRef<HTMLDivElement, { count?: number }>(({ count = 4 }, ref) => (
-  <div ref={ref} className="space-y-2 mt-2">
+const TaskSkeleton = ({ count = 4 }: { count?: number }) => (
+  <div className="space-y-2 mt-2">
     {Array.from({ length: count }).map((_, i) => (
       <motion.div
         key={i}
@@ -20,8 +19,6 @@ const TaskSkeleton = forwardRef<HTMLDivElement, { count?: number }>(({ count = 4
       </motion.div>
     ))}
   </div>
-));
-
-TaskSkeleton.displayName = "TaskSkeleton";
+);
 
 export default TaskSkeleton;
