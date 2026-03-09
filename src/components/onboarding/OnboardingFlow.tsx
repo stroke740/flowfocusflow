@@ -61,7 +61,7 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       <AnimatePresence mode="wait">
         <motion.div
           key={`bg-${step}`}
-          className={cn("absolute inset-0 bg-gradient-to-b opacity-60", current.gradient)}
+          className={cn("absolute inset-0 bg-gradient-to-b opacity-60 pointer-events-none", current.gradient)}
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.6 }}
           exit={{ opacity: 0 }}
