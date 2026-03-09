@@ -12,9 +12,11 @@ import WeeklyReview from "@/components/planning/WeeklyReview";
 import TaskTemplates from "@/components/tasks/TaskTemplates";
 import HabitTracker from "@/components/habits/HabitTracker";
 import ExportDialog from "@/components/export/ExportDialog";
+import SmartListsView from "@/components/views/SmartListsView";
+import BulkActionsBar from "@/components/tasks/BulkActionsBar";
 import {
   Home, Sun, Calendar, Grid3X3, Layout,
-  Sparkles, Download, BarChart2,
+  Sparkles, Download, BarChart2, ListFilter,
 } from "lucide-react";
 import { ViewType, FilterState, DEFAULT_FILTERS, Task } from "@/types/task";
 import { useTasks, useTags } from "@/hooks/use-tasks";
