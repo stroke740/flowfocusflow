@@ -6,7 +6,7 @@ import {
   Clock, Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import AmbientSoundsSection from "@/components/focus/AmbientSounds";
+
 import { Task } from "@/types/task";
 import { Button } from "@/components/ui/button";
 import { useTaskMutations } from "@/hooks/use-tasks";
@@ -300,10 +300,6 @@ const FocusMode = ({ open, onClose, task, tasks, onSelectTask }: FocusModeProps)
           {soundOn ? "Sound on" : "Sound off"}
         </button>
 
-        {/* Ambient Sounds */}
-        <div className="w-full max-w-sm mb-6">
-          <AmbientSoundsSection />
-        </div>
 
         {/* Current task */}
         <div className="w-full max-w-sm">
