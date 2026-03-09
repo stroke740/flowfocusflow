@@ -58,7 +58,7 @@ export function WalletButton() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2 min-w-[100px]">
           {truncateAddress(account?.address || '')}
           <ChevronDown className="h-3 w-3" />
         </Button>
