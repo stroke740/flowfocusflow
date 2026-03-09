@@ -71,7 +71,7 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
 
       {/* Floating orbs */}
       <motion.div
-        className="absolute w-[500px] h-[500px] rounded-full bg-primary/[0.03] blur-[100px]"
+        className="absolute w-[500px] h-[500px] rounded-full bg-primary/[0.03] blur-[100px] pointer-events-none"
         animate={{ x: [0, 30, -20, 0], y: [0, -20, 30, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         style={{ top: "-10%", right: "-15%" }}
