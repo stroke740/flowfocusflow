@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { transact, Web3MobileWallet } from '@solana-mobile/mobile-wallet-adapter-protocol';
+import { transact, type MobileWallet } from '@solana-mobile/mobile-wallet-adapter-protocol';
 import { Connection, PublicKey, Transaction, clusterApiUrl, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import bs58 from 'bs58';
 
