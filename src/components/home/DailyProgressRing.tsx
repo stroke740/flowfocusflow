@@ -124,21 +124,24 @@ const DailyProgressRing = ({
       {/* Stat Cards Row */}
       <div className="grid grid-cols-3 gap-2 w-full">
         <StatPill
-          icon={<Flame size={13} className="text-warning" />}
+          icon={<Flame size={14} className="text-amber-500" />}
           value={`${streak}d`}
           label="STREAK"
+          color="amber"
           delay={0.1}
         />
         <StatPill
-          icon={<TrendingUp size={13} className="text-primary" />}
-          value={`${weeklyAvg}%`}
-          label="WEEKLY"
+          icon={<TrendingUp size={14} className="text-emerald-500" />}
+          value={weeklyAvg}
+          label="AVG/DAY"
+          color="emerald"
           delay={0.2}
         />
         <StatPill
-          icon={<Trophy size={13} className="text-warning" />}
+          icon={<Trophy size={14} className="text-amber-500" />}
           value={`${bestStreak}d`}
           label="BEST"
+          color="amber"
           delay={0.3}
         />
       </div>
