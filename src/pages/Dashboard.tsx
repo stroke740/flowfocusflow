@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useApplyPreferences } from "@/hooks/use-apply-preferences";
 import { useQueryClient } from "@tanstack/react-query";
 import OnboardingFlow from "@/components/onboarding/OnboardingFlow";
 import SplashScreen from "@/components/splash/SplashScreen";
@@ -52,6 +53,7 @@ import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 type ExtendedView = ViewType | "project" | "calendar" | "matrix";
 
 const Dashboard = () => {
+  useApplyPreferences();
   const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem("focusflow_splash_done"));
   const [view, setView] = useState<ExtendedView>("inbox");
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);

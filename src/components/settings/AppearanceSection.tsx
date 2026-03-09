@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { } from "react";
 import { usePreferences, useUpdatePreferences } from "@/hooks/use-preferences";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -29,19 +29,7 @@ const AppearanceSection = () => {
     }
   };
 
-  // Apply theme
-  useEffect(() => {
-    if (!prefs) return;
-    const root = document.documentElement;
-    if (prefs.theme === "dark") {
-      root.classList.add("dark");
-    } else if (prefs.theme === "light") {
-      root.classList.remove("dark");
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      root.classList.toggle("dark", prefersDark);
-    }
-  }, [prefs?.theme]);
+  // Theme and accent are applied globally via useApplyPreferences in Dashboard
 
   if (isLoading || !prefs) {
     return <div className="animate-pulse space-y-4"><div className="h-10 bg-muted rounded-xl" /><div className="h-10 bg-muted rounded-xl" /></div>;
