@@ -52,7 +52,7 @@ import { FloatingActionButton } from "@/components/layout/FloatingActionButton";
 import { ProjectsSheet } from "@/components/layout/ProjectsSheet";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 
-type ExtendedView = ViewType | "project" | "calendar" | "matrix";
+type ExtendedView = ViewType | "project" | "calendar" | "matrix" | "smart";
 
 const Dashboard = () => {
   useApplyPreferences();
